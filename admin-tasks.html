@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Manage Tasks — Earnly Admin</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%230D63F2"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F6F8F7;--line:#E6ECE8;--line2:#EEF2F0;--ink:#101A14;--ink2:#57645C;--ink3:#94A29A;--mint:#E9F7EE;--mint2:#D9F0E2;--mint3:#C4E8D2;--green:#16A15C;--green-d:#0B7B44;--blue:#0D63F2;--blue-d:#0A52CC;--blue-s:#EBF2FE;--amber:#B25E09;--amber-s:#FDF1DF;--red:#D92D20;--red-s:#FCEBEB;--sh-sm:0 1px 2px rgba(16,24,40,.05);--sh-md:0 8px 24px rgba(16,24,40,.08);--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}button{font-family:var(--font)}
+.grow{flex:1}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14.5px;border:1px solid transparent;border-radius:12px;height:46px;padding:0 20px;cursor:pointer;transition:.18s;background:none;color:var(--ink)}
+.btn svg{width:17px;height:17px}.btn:active{transform:scale(.975)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-ghost{background:#fff;border-color:var(--line)}
+.btn-sm{height:37px;padding:0 14px;font-size:13.5px;border-radius:10px}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.btn.danger{color:var(--red);border-color:#F3C6C3}.btn.danger.armed{background:var(--red);border-color:var(--red);color:#fff}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#F2F6F3;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.chip svg{width:12px;height:12px}.chip-mint{background:var(--mint);color:var(--green-d)}
+.tint{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;flex:none}.tint svg{width:22px;height:22px}
+.tint-green{background:var(--mint);color:var(--green-d)}
+.taskimg{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;flex:none;background:var(--mint);min-width:56px;max-width:56px;min-height:56px;max-height:56px}
+.taskimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.task-row{display:flex;gap:13px;padding:16px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm);margin-bottom:10px;align-items:flex-start}
+.task-row.editing{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-s)}
+.tk-body{flex:1;min-width:0}
+.tk-body h4{font-size:14.5px;font-weight:800}
+.tk-body p{font-size:12.5px;color:var(--ink2);margin:2px 0 9px}
+.chipsrow{display:flex;gap:6px;flex-wrap:wrap}
+.tacts{display:flex;flex-direction:column;gap:8px;flex:none}
+@media(max-width:480px){.task-row{flex-wrap:wrap}.tacts{flex-direction:row;width:100%}.tacts .btn{flex:1}}
+.ico-btn{width:40px;height:40px;border-radius:12px;border:none;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--ink)}.ico-btn:hover{background:var(--line2)}.ico-btn svg{width:21px;height:21px}
+.dhdr{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line2);height:60px;display:flex;align-items:center;gap:8px;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font:800 17px var(--num)}.brand .mark{width:32px;height:32px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center}.brand .mark svg{width:17px;height:17px}
+.main{max-width:620px;margin:0 auto;padding:22px 16px calc(48px + env(safe-area-inset-bottom))}
+@media(min-width:1024px){.main{padding:28px 32px 64px}}
+.phead{margin-bottom:18px}.ptitle h1{font:800 22px/1.25 var(--num)}.ptitle p{color:var(--ink2);font-size:14px;margin-top:4px}
+.sech{display:flex;align-items:center;justify-content:space-between;margin:20px 0 12px}.sech h2{font-size:16px;font-weight:800}
+.form{padding:20px 18px}
+.flab{display:block;font-size:12.5px;font-weight:800;color:var(--ink2);margin:0 0 6px}
+.fhint{font-size:12px;color:var(--ink3);font-weight:600;margin-top:6px}
+.frow{margin-bottom:16px}
+.fin{width:100%;height:46px;border:1px solid var(--line);border-radius:12px;padding:0 14px;font:600 14px var(--font);color:var(--ink);background:#fff;transition:border-color .15s,box-shadow .15s;outline:none}
+.fin:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-s)}
+select.fin{appearance:none;background:#fff url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%2357645C" stroke-width="3"><path d="m6 9 6 6 6-6"/></svg>') no-repeat right 14px center}
+textarea.fin{height:auto;min-height:64px;padding:11px 14px;resize:vertical;line-height:1.5}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.acts{display:flex;gap:10px;margin-top:6px}
+.acts .btn{flex:1}
+.note{display:flex;gap:11px;padding:13px 15px;background:var(--blue-s);border:1px solid #D6E6FF;border-radius:14px;font-size:13px;color:var(--ink2);font-weight:500;margin-top:16px}
+.note svg{width:17px;height:17px;color:var(--blue);flex:none;margin-top:1px}
+.note.warn{background:var(--amber-s);border-color:#F5DFC0}.note.warn svg{color:var(--amber)}
+.note code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;background:rgba(0,0,0,.05);border-radius:5px;padding:1px 5px}
+.sk{background:#E7EEE9;border-radius:10px;position:relative;overflow:hidden}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shim 1.4s infinite}
+@keyframes shim{to{transform:translateX(100%)}}
+#toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:min(92vw,390px);pointer-events:none}
+.toast{pointer-events:auto;display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-md);animation:tin .3s;cursor:pointer}
+.toast.out{animation:tout .25s forwards}
+@keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+@keyframes tout{to{opacity:0;transform:translateY(-10px) scale(.97)}}
+.toast .ti{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none}.toast .ti svg{width:15px;height:15px}
+.toast.t-success .ti{background:var(--mint);color:var(--green-d)}.toast.t-error .ti{background:var(--red-s);color:var(--red)}
+.toast.t-info .ti{background:var(--blue-s);color:var(--blue)}.toast.t-warn .ti{background:var(--amber-s);color:var(--amber)}
+.toast b{display:block;font-size:13.5px}.toast span{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+
+<header class="dhdr"><button class="ico-btn" onclick="location.href='/tasks.html'"><i data-lucide="arrow-left"></i></button>
+<a class="brand" href="/tasks.html"><span class="mark"><i data-lucide="zap"></i></span>Earnly <span style="color:var(--ink3);font:700 12px var(--font)">Admin · Tasks</span></a>
+<div class="grow"></div><button class="ico-btn" onclick="location.href='/tasks.html'"><i data-lucide="external-link"></i></button></header>
+
+<main class="main"><div id="view"></div></main>
+
+<script>
+function $(s,r){return (r||document).querySelector(s)}
+/* FIX: $$ was missing — this crash is why Edit/Delete never worked */
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function sk(w,h,r){return '<span class="sk" style="display:block;width:'+(typeof w==='string'?w:w+'px')+';height:'+h+'px'+(r?';border-radius:'+r+'px':'')+'"></span>'}
+
+/* ============ FIREBASE ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",
+  authDomain: "earning-app-6d638.firebaseapp.com",
+  projectId: "earning-app-6d638",
+  storageBucket: "earning-app-6d638.firebasestorage.app",
+  messagingSenderId: "813497830586",
+  appId: "1:813497830586:web:8f728409eaaccd08c34683",
+  measurementId: "G-K0E6MNRS8R"
+};
+firebase.initializeApp(firebaseConfig);
+var fs=firebase.firestore();
+var colRef=function(){return fs.collection('tasks')};
+
+/* ============ TOASTS ============ */
+function toast(type,title,msg){
+var box=$('#toasts');if(!box)return;
+var icon=type==='success'?'check':type==='error'?'x':type==='warn'?'alert-triangle':'info';
+var el=document.createElement('div');el.className='toast t-'+type;
+el.innerHTML='<span class="ti">'+ic(icon)+'</span><div><b>'+title+'</b>'+(msg?'<span>'+msg+'</span>':'')+'</div>';
+box.appendChild(el);icons();
+var kill=function(){el.classList.add('out');setTimeout(function(){el.remove()},260)};
+el.onclick=kill;setTimeout(kill,4200)}
+
+/* ============ SKELETON ============ */
+function skelMain(){
+var i,s='';
+s+='<div class="phead">'+sk(150,26,8)+'<div style="height:10px"></div>'+sk('100%',12,6)+'</div>';
+for(i=0;i<3;i++){
+s+='<div class="task-row">'
++'<span class="sk" style="display:block;width:56px;height:56px;border-radius:14px;flex:none"></span>'
++'<div class="tk-body">'+sk(140,14,6)+'<div style="height:7px"></div>'+sk('88%',11,5)
++'<div style="height:11px"></div><div style="display:flex;gap:6px">'+sk(74,24,999)+sk(96,24,999)+sk(80,24,999)+'</div></div>'
++'<div style="display:flex;flex-direction:column;gap:8px">'+sk(70,37,10)+sk(70,37,10)+'</div>'
++'</div>'}
+s+='<div class="card" style="padding:20px 18px;margin-top:16px">'
++sk(120,13,6)+'<div style="height:6px"></div>'+sk('100%',46,12)
++'<div style="height:16px"></div>'+sk(90,13,6)+'<div style="height:6px"></div>'+sk('100%',64,12)
++'<div style="height:16px"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+sk('100%',64,12)+sk('100%',64,12)+'</div>'
++'<div style="height:16px"></div>'+sk('100%',50,12)
++'</div>';
+return s}
+ $('#view').innerHTML=skelMain();icons();
+
+/* ============ STATE ============ */
+var TASKS=[];
+var firstRun=true;
+var loadErr=null;
+var DEL_ARM=null;
+
+var FORM_DEFAULT={id:null,title:'',desc:'',reward:2,goal:3,metric:'watch',frequency:'daily',btnLabel:'Watch ads',btnUrl:'watch.html',img:'',icon:'target',order:0};
+var FORM=JSON.parse(JSON.stringify(FORM_DEFAULT));
+
+var METRICS=[['login','Daily login — opens the app (use goal 1)'],['watch','Watch ads — each ad watched counts'],['scratch','Scratch cards — each card revealed counts'],['checkin','Daily check-in (use goal 1)'],['earn','Earn ৳ today — any reward counts']];
+function metricLabel(m){for(var i=0;i<METRICS.length;i++){if(METRICS[i][0]===m)return m}return m||'login'}
+function freqLabel(f){return f==='once'?'One-time only':'Everyday · 1×/day'}
+
+/* ============ FETCH ============ */
+function loadTasksAdmin(){
+return colRef().get().then(function(q){
+TASKS=[];loadErr=null;
+q.forEach(function(doc){
+var c=doc.data()||{};
+TASKS.push({id:doc.id,
+title:typeof c.title==='string'&&c.title?c.title:'Task',
+desc:typeof c.desc==='string'?c.desc:'',
+reward:typeof c.reward==='number'?c.reward:0,
+goal:typeof c.goal==='number'&&c.goal>0?c.goal:1,
+metric:typeof c.metric==='string'?c.metric:'login',
+frequency:c.frequency==='once'?'once':'daily',
+btnLabel:typeof c.btnLabel==='string'&&c.btnLabel?c.btnLabel:'Continue',
+btnUrl:typeof c.btnUrl==='string'&&c.btnUrl?c.btnUrl:'index.html',
+img:typeof c.img==='string'?c.img:'',
+icon:typeof c.icon==='string'&&c.icon?c.icon:'target',
+order:typeof c.order==='number'?c.order:0})});
+TASKS.sort(function(a,b){return (a.order-b.order)||a.title.localeCompare(b.title)});
+firstRun=!TASKS.length;
+}).catch(function(err){
+loadErr=(err&&err.code==='permission-denied')?'rules':'other'})}
+
+/* ============ RENDER ============ */
+function taskCard(t){
+var media=t.img
+?'<span class="taskimg"><img src="'+esc(t.img)+'" alt=""></span>'
+:'<span class="tint tint-green">'+ic(esc(t.icon))+'</span>';
+var del=DEL_ARM===t.id
+?'<button class="btn btn-sm danger armed" data-del="'+esc(t.id)+'">'+ic('trash-2')+' Confirm delete</button>'
+:'<button class="btn btn-ghost btn-sm" data-del="'+esc(t.id)+'">'+ic('trash-2')+' Delete</button>';
+return '<div class="task-row'+(FORM.id===t.id?' editing':'')+'">'+media
++'<div class="tk-body"><h4>'+esc(t.title)+'</h4>'+(t.desc?'<p>'+esc(t.desc)+'</p>':'')
++'<div class="chipsrow">'
++'<span class="chip chip-mint">'+ic('coins')+' '+money(t.reward)+'</span>'
++'<span class="chip">'+ic('target')+' goal '+esc(t.goal)+'</span>'
++'<span class="chip">'+ic(t.frequency==='once'?'bookmark':'repeat')+' '+freqLabel(t.frequency)+'</span>'
++'<span class="chip">'+ic('mouse-pointer-click')+' '+esc(t.btnLabel)+'</span>'
++'</div></div>'
++'<div class="tacts"><button class="btn btn-ghost btn-sm" data-edit="'+esc(t.id)+'">'+ic('pencil')+' Edit</button>'+del+'</div>'
++'</div>'}
+
+function listHtml(){
+if(!TASKS.length)return '';
+return '<div class="sech"><h2>Saved tasks ('+TASKS.length+')</h2></div>'
++TASKS.map(taskCard).join('')}
+
+function selOpts(list,cur){
+return list.map(function(o){return '<option value="'+o[0]+'"'+(cur===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')}
+
+function formHtml(){
+var isEdit=!!FORM.id;
+var btnLabel=isEdit?'Update task':(firstRun?'Save — create fields in Firebase':'Save task');
+return '<div class="sech"><h2>'+(isEdit?'Edit task':'Add new task')+'</h2></div>'
++'<div class="card form" id="formCard">'
++(isEdit?'<div class="note" style="margin:0 0 16px">'+ic('pencil')+'<span>Editing <b>'+esc(FORM.title)+'</b> — saving overwrites this task. <button class="btn btn-ghost btn-sm" id="cancelEdit" style="height:30px;padding:0 12px;margin-left:6px">Cancel</button></span></div>':'')
++'<div class="frow"><label class="flab" for="fTitle">Task title</label>'
++'<input class="fin" id="fTitle" value="'+esc(FORM.title)+'" placeholder="Watch 3 videos"></div>'
++'<div class="frow"><label class="flab" for="fDesc">Description — how the user completes it</label>'
++'<textarea class="fin" id="fDesc" rows="2" placeholder="Any advertisement counts toward the goal">'+esc(FORM.desc)+'</textarea>'
++'<div class="fhint">Shown below the title on the task card.</div></div>'
++'<div class="frow"><div class="fgrid">'
++'<div><label class="flab" for="fReward">Reward (৳)</label><input class="fin" id="fReward" type="number" min="0.5" step="0.5" value="'+esc(FORM.reward)+'"></div>'
++'<div><label class="flab" for="fGoal">Goal (progress needed)</label><input class="fin" id="fGoal" type="number" min="1" step="1" value="'+esc(FORM.goal)+'"></div>'
++'</div></div>'
++'<div class="frow"><div class="fgrid">'
++'<div><label class="flab" for="fMetric">How progress is counted</label>'
++'<select class="fin" id="fMetric">'+selOpts(METRICS,FORM.metric)+'</select></div>'
++'<div><label class="flab" for="fFreq">Completion limit</label>'
++'<select class="fin" id="fFreq">'
++'<option value="daily"'+(FORM.frequency==='daily'?' selected':'')+'>Everyday — once per day (resets midnight)</option>'
++'<option value="once"'+(FORM.frequency==='once'?' selected':'')+'>One time — claimable only once, forever</option>'
++'</select></div>'
++'</div></div>'
++'<div class="frow"><div class="fgrid">'
++'<div><label class="flab" for="fBtnLabel">Action button name</label>'
++'<input class="fin" id="fBtnLabel" value="'+esc(FORM.btnLabel)+'" placeholder="Watch ads"></div>'
++'<div><label class="flab" for="fBtnUrl">Action button URL</label>'
++'<input class="fin" id="fBtnUrl" value="'+esc(FORM.btnUrl)+'" placeholder="watch.html or https://..."></div>'
++'</div><div class="fhint">Internal page (watch.html) or a full https:// link — both work.</div></div>'
++'<div class="frow"><label class="flab" for="fImg">Task logo image URL (optional)</label>'
++'<input class="fin" id="fImg" value="'+esc(FORM.img)+'" placeholder="https://i.postimg.cc/....png">'
++'<div class="fhint">Fills the fixed 56×56 container on the card. Leave empty to use the icon name instead.</div></div>'
++'<div class="frow"><div class="fgrid">'
++'<div><label class="flab" for="fIcon">Icon name (fallback)</label>'
++'<input class="fin" id="fIcon" value="'+esc(FORM.icon)+'" placeholder="play, gift, trophy…"></div>'
++'<div><label class="flab" for="fOrder">Sort order</label>'
++'<input class="fin" id="fOrder" type="number" step="1" value="'+esc(FORM.order)+'"></div>'
++'</div><div class="fhint">Smaller order numbers show first on the Daily Tasks page.</div></div>'
++'<div class="acts"><button class="btn btn-primary" id="saveBtn">'+ic('save')+' '+btnLabel+'</button></div>'
++'</div>'
++'<div class="note">'+ic('infinity')+'<span><b>No limit</b> — add as many tasks as you want. The Daily Tasks page renders every document in the <code>tasks</code> collection.</span></div>'
++(loadErr==='rules'
+?'<div class="note warn">'+ic('shield-off')+'<span><b>Firebase blocked the read.</b> Saving may also fail until you allow access. Firebase console → Firestore → Rules:<br><code>match /tasks/{doc} { allow read, write: if true; }</code> then Publish and reload.</span></div>'
+:'<div class="note warn">'+ic('unlock')+'<span>This panel has <b>no login</b> — keep the URL private so nobody else can edit your tasks.</span></div>')}
+
+function renderAll(){
+var h='<div class="phead ptitle"><h1>Manage Tasks</h1>'
++'<p>'+(firstRun
+?'Fields don\u2019t exist in Firebase yet — fill the form and press Save once. That creates the <code>tasks</code> collection and every field.'
+:'These tasks are fetched live from Firebase — the Daily Tasks page uses them on every load.')+'</p></div>'
++(firstRun&&!loadErr
+?'<div class="note warn" style="margin:0 0 16px">'+ic('database')+'<span><b>First run:</b> nothing is saved yet. The demo values below are just placeholders — change them, then press Save. Fields are created automatically.</span></div>'
+:'')
++listHtml()
++formHtml();
+ $('#view').innerHTML=h;icons();bindForm();
+if(FORM.id){var c=$('#formCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}}
+
+/* ============ BIND ============ */
+function bindForm(){
+var ce=$('#cancelEdit');
+if(ce)ce.onclick=function(){FORM=JSON.parse(JSON.stringify(FORM_DEFAULT));renderAll()};
+ $('#saveBtn').onclick=save;
+ $$('[data-edit]').forEach(function(b){b.onclick=function(){
+var id=b.getAttribute('data-edit'),t=null;
+TASKS.forEach(function(x){if(x.id===id)t=x});
+if(!t)return;
+FORM={id:t.id,title:t.title,desc:t.desc,reward:t.reward,goal:t.goal,metric:t.metric,
+frequency:t.frequency,btnLabel:t.btnLabel,btnUrl:t.btnUrl,img:t.img,icon:t.icon,order:t.order};
+DEL_ARM=null;renderAll()}});
+ $$('[data-del]').forEach(function(b){b.onclick=function(){
+var id=b.getAttribute('data-del');
+if(DEL_ARM!==id){DEL_ARM=id;renderAll();return}
+DEL_ARM=null;
+colRef().doc(id).delete().then(function(){
+toast('success','Task deleted','Removed from Firebase — Daily Tasks updates on next load');
+loadTasksAdmin().then(renderAll)
+}).catch(function(err){
+toast('error','Delete failed',(err&&err.code==='permission-denied')?'Rules block writes to tasks':'Try again')})}})}
+
+/* ============ SAVE ============ */
+function save(){
+var title=($('#fTitle').value||'').trim();
+var desc=($('#fDesc').value||'').trim();
+var reward=Number($('#fReward').value);
+var goal=Number($('#fGoal').value);
+var metric=$('#fMetric').value;
+var freq=$('#fFreq').value;
+var btnLabel=($('#fBtnLabel').value||'').trim();
+var btnUrl=($('#fBtnUrl').value||'').trim();
+var img=($('#fImg').value||'').trim();
+var icon=($('#fIcon').value||'target').trim()||'target';
+var order=Number($('#fOrder').value)||0;
+if(!title){toast('error','Title required','Give the task a name');return}
+if(!(reward>0)){toast('error','Invalid reward','Reward must be greater than 0');return}
+if(!(goal>=1)){toast('error','Invalid goal','Goal must be at least 1');return}
+if(!btnLabel){toast('error','Button name required','What should the action button say?');return}
+if(!btnUrl){toast('error','Button URL required','Where should the button link to?');return}
+if(img&&img.indexOf('http')!==0){toast('error','Invalid image URL','Image must start with https:// (or leave empty)');return}
+var btn=$('#saveBtn');var btnHtml=btn.innerHTML;
+btn.disabled=true;
+btn.innerHTML=ic('loader-2')+' Saving…';icons();
+var data={title:title,desc:desc,reward:reward,goal:goal,metric:metric,frequency:freq,
+btnLabel:btnLabel,btnUrl:btnUrl,img:img,icon:icon,order:order,
+updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+var wasFirst=firstRun;
+var wasEdit=!!FORM.id;
+var ref=wasEdit?colRef().doc(FORM.id):colRef().doc();
+ref.set(data,{merge:true}).then(function(){
+FORM=JSON.parse(JSON.stringify(FORM_DEFAULT));
+toast('success',wasFirst?'Fields created in Firebase':(wasEdit?'Task updated':'Task saved'),
+wasFirst?'Collection "tasks" created with title, desc, reward, goal, metric, frequency, btnLabel, btnUrl, img, icon, order':'The Daily Tasks page fetches it on next load');
+return loadTasksAdmin()}).then(function(){renderAll()}).catch(function(err){
+btn.disabled=false;btn.innerHTML=btnHtml;icons();
+toast('error','Save failed',(err&&err.code==='permission-denied')
+?'Rules block writes to tasks. Add: match /tasks/{doc} { allow read, write: if true; }'
+:'Check your connection and try again')})}
+
+/* ============ BOOT ============ */
+loadTasksAdmin().then(renderAll);
+</script>
+</body>
+</html>

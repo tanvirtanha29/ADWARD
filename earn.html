@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Earn Hub — Adward</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%230D63F2"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F6F8F7;--line:#E6ECE8;--line2:#EEF2F0;--ink:#101A14;--ink2:#57645C;--ink3:#94A29A;--mint:#E9F7EE;--mint2:#D9F0E2;--mint3:#C4E8D2;--green:#16A15C;--green-d:#0B7B44;--blue:#0D63F2;--blue-d:#0A52CC;--blue-s:#EBF2FE;--blue-l:#D6E4FD;--amber:#B25E09;--amber-s:#FDF1DF;--red:#D92D20;--red-s:#FCEBEB;--sh-sm:0 1px 2px rgba(16,24,40,.05);--sh-md:0 8px 24px rgba(16,24,40,.08);--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif;--brand:'Space Grotesk','Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}button{font-family:var(--font)}
+.grow{flex:1}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14.5px;border:1px solid transparent;border-radius:12px;height:46px;padding:0 20px;cursor:pointer;transition:.18s;background:none;color:var(--ink);white-space:nowrap}
+.btn svg{width:17px;height:17px}.btn:active{transform:scale(.975)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-mint{background:var(--mint2);color:var(--green-d)}.btn-mint:hover{background:var(--mint3)}
+.btn-ghost{background:#fff;border-color:var(--line)}
+.btn-sm{height:37px;padding:0 15px;font-size:13.5px;border-radius:10px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#F2F6F3;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.chip svg{width:12px;height:12px}.chip-mint{background:var(--mint);color:var(--green-d)}.chip-blue{background:var(--blue-s);color:var(--blue)}
+.tint{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}.tint svg{width:19px;height:19px}
+.tint-blue{background:var(--blue-s);color:var(--blue)}.tint-green{background:var(--mint);color:var(--green-d)}.tint-amber{background:var(--amber-s);color:var(--amber)}.tint-ink{background:#F2F6F3;color:var(--ink2)}
+.ico-btn{position:relative;width:40px;height:40px;border-radius:12px;border:none;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--ink)}.ico-btn:hover{background:var(--line2)}.ico-btn svg{width:21px;height:21px}
+.badge-dot{position:absolute;top:3px;right:3px;min-width:16px;height:16px;background:var(--red);color:#fff;border-radius:999px;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px;border:2px solid #fff}
+.dhdr{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line2);height:60px;display:flex;align-items:center;gap:8px;padding:0 16px}
+/* Site name in Space Grotesk — same font the checkin page uses for the brand */
+.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font:800 17px var(--brand)}
+/* Mark 37×37, image fills it; header height stays exactly 60px */
+.brand .mark{width:37px;height:37px;border-radius:11px;background:var(--blue);color:#fff;display:grid;place-items:center;overflow:hidden;flex:none}
+.brand .mark img{width:100%;height:100%;object-fit:cover;display:block}
+.dover{position:fixed;inset:0;background:rgba(16,26,20,.42);opacity:0;visibility:hidden;transition:.22s;z-index:90}.dover.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(216px,56vw);background:#fff;z-index:95;transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.3,1);display:flex;flex-direction:column;border-left:1px solid var(--line2);padding:16px 10px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}.drawer.open{transform:none}
+.dprof{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid var(--line2);margin-bottom:6px}.dprof b{display:block;font-size:14px}.dprof span{font:700 12px var(--num);color:var(--green-d)}
+.sgroup{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--ink3);text-transform:uppercase;padding:12px 10px 6px}
+.slink{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;color:var(--ink2);font-size:13.5px;font-weight:600;border:none;background:none;width:100%;text-align:left;cursor:pointer;text-decoration:none}.slink svg{width:17px;height:17px;flex:none}.slink:hover{background:#F4F8F5;color:var(--ink)}.slink.on{background:var(--blue-s);color:var(--blue)}
+.dfoot{margin-top:auto;border-top:1px solid var(--line2);padding-top:10px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line2);display:flex;padding:5px 6px calc(5px + env(safe-area-inset-bottom))}
+.bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 3px;color:var(--ink3);font-size:10.5px;font-weight:700;text-decoration:none}
+.bnav .bi{display:flex;padding:5px 16px;border-radius:999px;transition:background .18s}
+.bnav svg{width:20px;height:20px}.bnav a.on{color:var(--blue)}.bnav a.on .bi{background:var(--blue-s)}
+.netban{position:sticky;top:60px;z-index:39;background:var(--amber-s);color:var(--amber);font-size:13px;font-weight:700;display:none;align-items:center;justify-content:center;gap:8px;padding:8px 14px}.netban svg{width:15px;height:15px}
+.main{max-width:680px;margin:0 auto;padding:18px 16px calc(96px + env(safe-area-inset-bottom))}
+@media(min-width:1024px){.main{max-width:1020px;padding:28px 32px 80px}}
+.phead{margin-bottom:18px}.ptitle h1{font:800 22px/1.25 var(--num)}.ptitle p{color:var(--ink2);font-size:14px;margin-top:4px}
+.sec{margin-top:26px}.sech{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.sech h2{font-size:16px;font-weight:800}
+.earnban{display:flex;align-items:center;gap:12px;background:var(--mint);border:1px solid var(--mint3);border-radius:16px;padding:14px 16px;margin-bottom:20px}
+.earnban .et{flex:1;min-width:0;font-size:13.5px;color:var(--ink2);font-weight:600}
+.earnban .et b{color:var(--green-d);font-family:var(--num);white-space:nowrap}
+/* ===== FEATURE CARDS (shared design for all five methods) ===== */
+.rcgrid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:640px){.rcgrid{grid-template-columns:1fr 1fr}}
+.rcard{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm);padding:18px;display:flex;flex-direction:column;color:var(--ink);transition:.18s;cursor:pointer;text-decoration:none}
+.rcard:hover{transform:translateY(-3px);box-shadow:var(--sh-md);border-color:var(--mint3)}
+.rc-top{display:flex;justify-content:space-between;align-items:flex-start}
+.rcard h3{font-size:16px;font-weight:800;margin:13px 0 4px}
+.rcard p{font-size:13px;color:var(--ink2);font-weight:500;min-height:38px}
+.rc-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+.rc-foot small{font-size:11.5px;color:var(--ink3);font-weight:700}
+/* buttons inside cards never wrap into two lines */
+.rc-foot .btn{white-space:nowrap;flex:none}
+.erow{display:flex;align-items:center;gap:13px;padding:15px 16px;border-bottom:1px solid var(--line2);cursor:pointer;transition:background .14s;color:inherit;text-decoration:none}
+.erow:last-child{border:none}.erow:hover{background:#FBFDFC}
+.ebody{flex:1;min-width:0}
+.ebody b{font-size:14.5px;font-weight:800;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ebody span{font-size:12.5px;color:var(--ink2);font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.erow>.chip{flex:none}
+.note{display:flex;gap:11px;padding:13px 15px;background:var(--blue-s);border:1px solid var(--blue-l);border-radius:14px;font-size:13px;color:var(--ink2);font-weight:500;margin-top:16px}
+.note svg{width:17px;height:17px;color:var(--blue);flex:none;margin-top:1px}
+.sk{background:#E7EEE9;border-radius:10px;position:relative;overflow:hidden}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shim 1.4s infinite}
+@keyframes shim{to{transform:translateX(100%)}}
+#diag{position:fixed;inset:auto 12px 12px 12px;z-index:600;background:#fff;border:1.5px solid var(--red);border-radius:14px;padding:16px;font:500 13px var(--font);display:none;box-shadow:var(--sh-md);max-height:70vh;overflow:auto}
+#diag b{display:block;margin-bottom:6px;color:var(--red)}
+#toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:min(92vw,390px);pointer-events:none}
+.toast{pointer-events:auto;display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-md);animation:tin .3s;cursor:pointer}
+.toast.out{animation:tout .25s forwards}
+@keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+@keyframes tout{to{opacity:0;transform:translateY(-10px) scale(.97)}}
+.toast .ti{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none}.toast .ti svg{width:15px;height:15px}
+.toast.t-success .ti{background:var(--mint);color:var(--green-d)}.toast.t-error .ti{background:var(--red-s);color:var(--red)}
+.toast.t-info .ti{background:var(--blue-s);color:var(--blue)}.toast.t-warn .ti{background:var(--amber-s);color:var(--amber)}
+.toast b{display:block;font-size:13.5px}.toast span{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px}
+.mback{position:fixed;inset:0;background:rgba(16,26,20,.48);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.mbox{background:#fff;width:100%;max-width:460px;border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;animation:mup .3s}
+@keyframes mup{from{transform:translateY(40px);opacity:0}}
+@media(min-width:640px){.mback{align-items:center;padding:20px}.mbox{border-radius:22px;animation:mp .22s}@keyframes mp{from{transform:scale(.94);opacity:0}}}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.mhead h3{font-size:17px;font-weight:800;font-family:var(--num)}
+.macts{display:flex;gap:10px;margin-top:18px}.macts .btn{flex:1}
+@keyframes sp{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+/* ===== LOGIN SHEET — same design as history/notifications/profile ===== */
+.sheet-back{position:fixed;inset:0;background:rgba(16,26,20,.55);z-index:150;display:flex;align-items:flex-end;justify-content:center;animation:fade .25s;backdrop-filter:blur(3px)}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:26px 22px calc(26px + env(safe-area-inset-bottom));animation:mup .35s;text-align:center}
+@keyframes mup{from{transform:translateY(60px);opacity:0}}
+.sheet .grip{width:44px;height:5px;border-radius:99px;background:var(--line2);margin:0 auto 18px}
+.sheet .slogo{width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;margin:0 auto 14px;overflow:hidden;flex:none}
+.sheet .slogo img{width:100%;height:100%;object-fit:cover;display:block}
+.sheet h2{font:800 20px var(--num);margin-bottom:6px}
+.sheet p{color:var(--ink2);font-size:13.5px;font-weight:500;margin-bottom:20px}
+.sheet .acts{display:flex;gap:10px}
+.sheet .acts .btn{flex:1;height:48px}
+.sheet small{display:block;margin-top:14px;color:var(--ink3);font-size:12px;font-weight:600}
+/* ===== FIX: remove Android/WebView tap highlight + tap focus ring ONLY ===== */
+*{-webkit-tap-highlight-color:transparent !important}
+a,button,[role="button"],[onclick],.bnav a,.bnav .bi,.ico-btn,.slink,.btn,.card,.toast,.dover,.rcard,.erow{-webkit-tap-highlight-color:transparent !important}
+a:focus:not(:focus-visible),button:focus:not(:focus-visible),.bnav a:focus:not(:focus-visible),.bnav .bi:focus:not(:focus-visible),.ico-btn:focus:not(:focus-visible),.slink:focus:not(:focus-visible),.btn:focus:not(:focus-visible),.toast:focus:not(:focus-visible),.rcard:focus:not(:focus-visible),.erow:focus:not(:focus-visible){outline:none !important}
+/* fallback for very old Android WebView without :focus-visible (touch devices only) */
+@media (hover:none) and (pointer:coarse){a:focus,button:focus,.bnav a:focus,.bnav .bi:focus,.ico-btn:focus,.slink:focus,.btn:focus,.toast:focus,.rcard:focus,.erow:focus{outline:none !important}}
+</style>
+</head>
+<body>
+<div id="diag"></div>
+<div id="toasts"></div>
+<div id="app"></div>
+<script>
+/* ============ SYNC PHASE ============ */
+function showDiag(t,h){var d=document.getElementById('diag');
+if(d){d.style.display='block';d.innerHTML='<b>'+t+'</b>'+h}}
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return [].slice.call((r||document).querySelectorAll(s))}
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function money0(n){return '৳'+Number(n||0).toLocaleString('en-US')}
+function initials(n){return (n||'').trim().split(/\s+/).map(function(w){return w[0]}).slice(0,2).join('').toUpperCase()}
+var FLAG='earnly_logged_in';
+
+/* ================== SITE LOGO (auto-invalidating cache) ==================
+   • Same shared cache as checkin.html (earnly_site_logo_v2) — one
+     download serves every page.
+   • Cache stores {url, data} — change LOGO_URL in code and the old
+     cached copy is discarded + re-fetched automatically.
+   • Legacy v1 key (raw base64, old format) is removed on first run.
+   • Quality: original bytes kept if small (<1.2MB data URL); larger
+     sources are downscaled once to 512px via high-quality canvas.
+========================================================================== */
+var LOGO_URL='https://i.ibb.co.com/7J62W1Vy/super-resolution-20260902102855933.png';
+var LOGO_KEY='earnly_site_logo_v2';
+var LOGO_LEGACY_KEYS=['earnly_watch_ad_logo_v1'];
+function logoGet(){
+try{
+var raw=localStorage.getItem(LOGO_KEY);
+if(!raw)return '';
+var o=JSON.parse(raw);
+/* URL changed since it was cached → stale, drop it */
+if(!o||o.url!==LOGO_URL||!o.data)return '';
+return o.data}catch(e){return ''}}
+function logoSrc(){return logoGet()||LOGO_URL}
+function updateLogoImg(){
+var l=logoGet();if(!l)return;
+var im=$('#brandLogo')||$('#sheetLogo');
+if(im)im.src=l}
+function cacheLogo(){
+/* wipe old-format caches from previous versions */
+try{LOGO_LEGACY_KEYS.forEach(function(k){localStorage.removeItem(k)})}catch(e){}
+if(logoGet())return; /* this URL is already cached — done */
+var save=function(d){try{localStorage.setItem(LOGO_KEY,JSON.stringify({url:LOGO_URL,data:d}))}catch(e){/* quota */}};
+var viaCanvas=function(img){
+try{
+var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+if(!w||!h)return;
+var scale=Math.min(1,512/Math.max(w,h));
+var c=document.createElement('canvas');
+c.width=Math.max(1,Math.round(w*scale));
+c.height=Math.max(1,Math.round(h*scale));
+var cx=c.getContext('2d');
+cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+cx.drawImage(img,0,0,c.width,c.height);
+save(c.toDataURL('image/png'));
+updateLogoImg()}catch(e){/* tainted canvas — remote URL stays in use */}};
+fetch(LOGO_URL,{mode:'cors'}).then(function(r){
+if(!r.ok)throw new Error('http '+r.status);return r.blob()}).then(function(b){
+return new Promise(function(res,rej){
+var fr=new FileReader();fr.onload=function(){res(fr.result)};fr.onerror=rej;fr.readAsDataURL(b)})}).then(function(dataUrl){
+/* small source → keep the original bytes untouched (best quality);
+   big source → a raw data URL would blow the ~5MB localStorage
+   quota, so downscale once to the crisp 512px copy instead */
+if(dataUrl&&dataUrl.length<1200000){save(dataUrl);updateLogoImg();return}
+var probe=new Image();
+probe.onload=function(){viaCanvas(probe)};
+probe.src=dataUrl}).catch(function(){
+var img=new Image();img.crossOrigin='anonymous';
+img.onload=function(){viaCanvas(img)};
+img.src=LOGO_URL})}
+
+var NAV=[
+{g:'Overview',items:[['index','house','Dashboard'],['earn','zap','Earn Hub']]},
+{g:'Earning',items:[['watch','play','Watch & Earn'],['scratch','gift','Scratch Card'],['tasks','target','Daily Tasks'],['checkin','calendar-check','Daily Check-In'],['spin','disc-3','Spin & Earn'],['offers','puzzle','Offers'],['refer','users','Refer & Earn']]},
+{g:'Account',items:[['wallet','wallet','Wallet'],['withdraw','banknote','Withdraw'],['history','history','Transactions'],['notifications','bell','Notifications'],['profile','user','Profile']]}];
+function sk(w,h,r){return '<span class="sk" style="display:block;width:'+w+'px;height:'+h+'px'+(r?';border-radius:'+r+'px':'')+'"></span>'}
+function mountShell(route){
+var bnavHtml=[['index','house','Home'],['earn','zap','Earn'],['wallet','wallet','Wallet'],['history','history','History'],['profile','user','Profile']].map(function(it){
+return '<a href="'+it[0]+'.html" data-route="'+it[0]+'"><span class="bi">'+ic(it[1])+'</span>'+it[2]+'</a>'}).join('');
+ $('#app').innerHTML=
+'<header class="dhdr"><a class="brand" href="index.html"><span class="mark"><img id="brandLogo" src="'+logoSrc()+'" alt="Adward"></span>Adward</a><div class="grow"></div>'
++'<button class="ico-btn" id="hBell">'+ic('bell')+'<span class="badge-dot" id="bellBadge" style="display:none"></span></button>'
++'<button class="ico-btn" id="burger">'+ic('menu')+'</button></header>'
++'<div class="netban" id="netban">'+ic('cloud-off')+" You're offline — rewards will sync once you reconnect</div>"
++'<div class="dover" id="dover"></div><aside class="drawer" id="drawer"></aside>'
++'<main class="main" id="view"></main>'
++'<nav class="bnav">'+bnavHtml+'</nav>';
+icons();
+ $('#hBell').onclick=function(){location.href='notifications.html'};
+var dr=$('#drawer'),ov=$('#dover');
+ $('#burger').onclick=function(){fillDrawer();dr.classList.add('open');ov.classList.add('open');document.body.style.overflow='hidden'};
+ov.onclick=closeDr;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDr()});
+ $$('.bnav a[data-route]').forEach(function(a){a.classList.toggle('on',a.dataset.route===route)});
+var up=function(){var b=$('#netban');if(b)b.style.display=navigator.onLine?'none':'flex'};
+addEventListener('offline',function(){up()});addEventListener('online',function(){up()});up()}
+function closeDr(){var dr=$('#drawer'),ov=$('#dover');
+dr.classList.remove('open');ov.classList.remove('open');document.body.style.overflow=''}
+var CK='earnly_earn_cache_v1';
+function loadCache(){try{var c=JSON.parse(localStorage.getItem(CK));if(c&&c.me&&c.me.daily)return c}catch(e){}return null}
+var navType=(performance.getEntriesByType('navigation')[0]||{}).type||'navigate';
+var snapKey='earnly_snap_earn_'+(localStorage.getItem('earnly_uid')||'anon');
+if(navType==='reload'){sessionStorage.removeItem(snapKey);sessionStorage.removeItem('sc_earn')}
+var ME=(function(){var c=loadCache();return c?c.me:null})();
+var UNREAD=(function(){var c=loadCache();return c?(c.unread||0):0})();
+function drawerHtml(){
+return '<div class="dprof"><span class="avatar" style="width:42px;height:42px;font-size:14px">'+initials(ME.name)+'</span>'
++'<div><b>'+ME.name+'</b><span>'+money(ME.balance.available)+'</span></div></div>'
++NAV.map(function(g){return '<div class="sgroup">'+g.g+'</div>'+g.items.map(function(it){
+return '<a class="slink" data-route="'+it[0]+'" href="'+it[0]+'.html">'+ic(it[1])+it[2]+'</a>'}).join('')}).join('')
++'<div class="dfoot"><button class="slink" id="drOut" style="color:var(--red)">'+ic('log-out')+'Log out</button></div>'}
+function fillDrawer(){
+var dr=$('#drawer');
+if(!dr||dr.dataset.filled==='1'||!ME)return;
+dr.dataset.filled='1';dr.innerHTML=drawerHtml();icons();
+ $('#drOut').onclick=function(){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem(CK);localStorage.removeItem('earnly_dash_cache_v1');
+Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('earnly_snap_')===0)sessionStorage.removeItem(k)})}catch(e){}
+firebase.auth().signOut().then(function(){location.href='login.html'})};
+ $$('a',dr).forEach(function(a){a.addEventListener('click',closeDr)})}
+function skelMain(){
+var i,s='';
+s+='<div style="margin-bottom:18px">'+sk(120,22,8)+'<div style="height:8px"></div>'+sk(280,13,6)+'</div>';
+s+='<div class="earnban">'+sk(42,42,12)
++'<div class="et" style="flex:1">'+sk(150,14,6)+'<div style="height:6px"></div>'+sk(220,11,5)+'</div></div>';
+s+='<section><div class="sech">'+sk(110,14,6)+'</div><div class="rcgrid">';
+for(i=0;i<2;i++){s+='<div class="rcard"><div class="rc-top">'+sk(42,42,13)
++'<span class="sk" style="display:inline-block;width:78px;height:26px;border-radius:999px"></span></div>'
++'<div style="margin-top:13px">'+sk(110,16,6)+'</div><div style="margin-top:6px">'+sk(210,13,5)+'</div>'
++'<div style="height:10px"></div>'+sk(200,13,5)
++'<div style="height:14px"></div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">'
++sk(120,10,4)+'<span class="sk" style="display:inline-block;width:118px;height:37px;border-radius:10px"></span></div></div>'}
+s+='</div></section>';
+s+='<section class="sec">'+sk(60,14,6)+'<div style="height:12px"></div><div class="rcgrid">';
+for(i=0;i<3;i++){s+='<div class="rcard"><div class="rc-top">'+sk(42,42,13)
++'<span class="sk" style="display:inline-block;width:78px;height:26px;border-radius:999px"></span></div>'
++'<div style="margin-top:13px">'+sk(110,16,6)+'</div><div style="margin-top:6px">'+sk(210,13,5)+'</div>'
++'<div style="height:10px"></div>'+sk(200,13,5)
++'<div style="height:14px"></div><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">'
++sk(120,10,4)+'<span class="sk" style="display:inline-block;width:118px;height:37px;border-radius:10px"></span></div></div>'}
+s+='</div></section>';
+s+='<section class="sec">'+sk(90,14,6)+'<div style="height:12px"></div><div class="card" style="padding:2px 0">';
+for(i=0;i<3;i++){s+='<div class="erow">'+sk(40,40,12)
++'<div class="ebody">'+sk(140,14,6)+'<div style="height:6px"></div>'+sk(180,11,5)+'</div>'
++sk(70,26,999)+'</div>'}
+s+='</div></section>';
+s+='<div class="note">'+sk(20,20,6)+'<div style="flex:1">'+sk(180,12,5)+'<div style="height:5px"></div>'+sk(150,12,5)+'</div></div>';
+return s}
+mountShell('earn');
+var _snap=sessionStorage.getItem(snapKey);
+if(_snap){$('#view').innerHTML=_snap;icons()}
+else{$('#view').innerHTML=skelMain();icons()}
+/* cache the site logo immediately (runs once, silently) */
+cacheLogo();
+/* ===== LOGIN SHEET — same design as history/notifications/profile ===== */
+function showLoginSheet(){
+if($('#loginSheet'))return;
+var b=document.createElement('div');b.id='loginSheet';b.className='sheet-back';
+b.innerHTML='<div class="sheet"><div class="grip"></div>'
++'<span class="slogo"><img id="sheetLogo" src="'+logoSrc()+'" alt="Adward"></span>'
++'<h2>Sign in to start earning</h2>'
++'<p>Watch short ads, scratch cards, spin the wheel and complete daily tasks — every reward is verified on our servers before it reaches your balance.</p>'
++'<div class="acts">'
++'<a class="btn btn-ghost" href="login.html">'+ic('log-in')+' Sign in</a>'
++'<a class="btn btn-primary" href="register.html">'+ic('user-plus')+' Create account</a>'
++'</div><small>Cash out to your mobile wallet from ৳200</small></div>';
+document.body.appendChild(b);icons()}
+function hideLoginSheet(){var b=$('#loginSheet');if(b)b.remove()}
+/* ============ ASYNC PHASE ============ */
+var firebaseConfig={apiKey:"AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",authDomain:"earning-app-6d638.firebaseapp.com",projectId:"earning-app-6d638",storageBucket:"earning-app-6d638.firebasestorage.app",messagingSenderId:"813497830586",appId:"1:813497830586:web:8f728409eaaccd08c34683"};
+if(typeof firebase==='undefined'){showDiag('Firebase SDK failed to load','Check your internet connection and reload.');throw new Error('no firebase')}
+firebase.initializeApp(firebaseConfig);
+var auth=firebase.auth(),fs=firebase.firestore();
+if(typeof fs.enableIndexedDbPersistence==='function'){fs.enableIndexedDbPersistence().catch(function(){})}
+function round2(v){return Math.round(v*100)/100}
+function rid(n){var s='',c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';while(n--)s+=c[Math.random()*31|0];return s}
+function ymd(t){var d=t?new Date(t):new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function freshDaily(day){return{day:day,videos:{},scratched:0,spins:0,tasksClaimed:[],scratchLog:[],spinLog:[],activeCard:null,loginDone:false,todayEarned:0}}
+function normDaily(d){var k=ymd();return(!d||d.day!==k||d.videos===undefined)?freshDaily(k):d}
+function toast(t,type,sub){type=type||'success';var el=document.createElement('div');el.className='toast t-'+type;
+el.innerHTML='<span class="ti">'+ic({success:'circle-check',error:'circle-x',info:'info',warn:'triangle-alert'}[type])+'</span><div><b>'+t+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</div>';
+ $('#toasts').appendChild(el);icons();
+var k=function(){el.classList.add('out');setTimeout(function(){el.remove()},240)};el.onclick=k;setTimeout(k,3400)}
+function retry(fn,n){return fn().catch(function(e){return n>0?retry(fn,n-1):Promise.reject(e)})}
+function soft(p){return p.catch(function(){return null})}
+var VIDEOS=[
+{id:'v1',title:'StyleHub Summer Sale',sponsor:'StyleHub',duration:30,reward:2,daily:3,color:'#0D63F2',kicker:'MID-SEASON SALE',headline:'UP TO 60% OFF',sub:'Everything must go — 3 days only',cta:'Shop now',seed:'stylehub-ad'},
+{id:'v2',title:"Discover Cox's Bazar",sponsor:'TripDesh',duration:45,reward:3,daily:2,color:'#0E9F6E',kicker:'BEACH SEASON',headline:'SEA, SUN & SAVE',sub:'Beach packages from ৳4,999',cta:'See deals',seed:'tripdesh-ad'},
+{id:'v3',title:'FoodMato Dinner Deals',sponsor:'FoodMato',duration:20,reward:1.5,daily:4,color:'#E8590C',kicker:'DINNER TIME',headline:'FREE DELIVERY',sub:'On all orders over ৳199',cta:'Order food',seed:'foodmato-ad'},
+{id:'v4',title:'NovaPhone X Teaser',sponsor:'Nova Tech',duration:60,reward:4,daily:1,color:'#5B5BD6',kicker:'EXCLUSIVE TEASER',headline:'THE X IS COMING',sub:'Pre-book opens this Friday',cta:'Pre-book',seed:'novaphone-ad'},
+{id:'v5',title:'GreenShield Awareness',sponsor:'GreenShield',duration:15,reward:1,daily:5,color:'#0E7490',kicker:'HEALTH FIRST',headline:'STAY PROTECTED',sub:'Health plans from ৳120/month',cta:'Learn more',seed:'greenshield-ad'}];
+var TASKS=[
+{id:'login',icon:'log-in',title:'Daily login',reward:.5,goal:1},
+{id:'watch3',icon:'play',title:'Watch 3 videos',reward:2,goal:3},
+{id:'watch5',icon:'play',title:'Watch 5 videos',reward:5,goal:5},
+{id:'scratch2',icon:'gift',title:'Scratch 2 cards',reward:1,goal:2},
+{id:'checkin',icon:'calendar-check',title:'Daily check-in',reward:1,goal:1},
+{id:'earn10',icon:'trophy',title:'Earn ৳10 today',reward:2,goal:10,moneyGoal:true}];
+var CHECKIN_REWARDS=[1,1,2,2,3,5,10];
+var REF_BONUS=50,REF_FRIEND=20;
+var SCRATCH_DAILY=3,SPIN_DAILY=3;
+var OFFERS=[
+{id:'of1',cat:'Surveys',provider:'Survey Pulse',lc:'#0D63F2',title:'Consumer Habits Survey',desc:'Answer 18 quick questions about your everyday shopping habits.',reward:25,diff:'Easy',time:'8–10 min',req:['Must be 18 or older','One completion per user','Answers are quality-checked by the partner']},
+{id:'of2',cat:'Apps',provider:'AppNest',lc:'#0E9F6E',title:'Install FitnessFlow',desc:'Install the FitnessFlow app and open it once.',reward:40,diff:'Easy',time:'~5 min',req:['Install from the provided store link','Open the app for at least 60 seconds','New FitnessFlow users only']},
+{id:'of3',cat:'Games',provider:'PlayArcade',lc:'#E8590C',title:'Reach Level 10 in Coin Rush',desc:'A casual puzzle game — reach level 10 to complete the campaign.',reward:120,diff:'Hard',time:'2–3 days',req:['Install Coin Rush via the campaign link','Reach level 10 on the same account','Progress is verified by the partner']},
+{id:'of4',cat:'Surveys',provider:'Opinion Board',lc:'#5B5BD6',title:'Streaming Preferences',desc:'Share how you discover shows and stream music.',reward:18,diff:'Easy',time:'~6 min',req:['Bangladesh residents only','One completion per 30 days']},
+{id:'of5',cat:'Campaigns',provider:'PayWave',lc:'#0E7490',title:'PayWave First Top-up',desc:'Sign up and complete one mobile top-up.',reward:150,diff:'Medium',time:'~1 day',req:['Sign up with a verified phone number','Top up ৳50 or more once','Existing PayWave users are not eligible']},
+{id:'of6',cat:'Apps',provider:'AppNest',lc:'#B25E09',title:'Try NewsDaily Premium',desc:'Install NewsDaily and activate the 3-day trial.',reward:55,diff:'Medium',time:'~1 day',req:['Trial must stay active until review','Cancel any time after approval']}];
+var OFFER_META={};OFFERS.forEach(function(o){OFFER_META[o.id]=[o.title,o.reward]});
+var UID=null;
+function uRef(){return fs.collection('users').doc(UID)}
+function snapK(){return 'earnly_snap_earn_'+UID}
+function ensureProfile(){
+return uRef().get().then(function(snap){
+if(snap.exists)return snap.data();
+var u=auth.currentUser;
+var pid={name:(u.displayName||(u.email||'').split('@')[0]),email:u.email||'',phone:'',contact:u.email||'',refCode:'USER'+rid(2),joinedAt:Date.now(),referredBy:null,refUnlocked:true,streak:0,lastCheckin:null,settings:{push:true,email:true,tips:false},balance:{available:0,pending:0,earned:0,withdrawn:0},daily:freshDaily(ymd()),uoff:{},refs:[]};
+return uRef().set(pid).then(function(){return pid})})}
+function saveDaily(){ME.daily=normDaily(ME.daily);ME.daily.loginDone=true;return uRef().update({daily:ME.daily})}
+function sweepOffers(){
+var u=ME.uoff||{},pending=false;
+Object.keys(u).forEach(function(id){var s=u[id];if(s&&s.state==='review'&&Date.now()>=(s.reviewAt||0))pending=true});
+if(!pending)return saveDaily();
+return fs.runTransaction(function(t){
+return t.get(uRef()).then(function(snap){
+var p=snap.data(),d=normDaily(p.daily);d.loginDone=true;
+var uo=p.uoff||{};
+Object.keys(uo).forEach(function(id2){
+var s2=uo[id2];
+if(!(s2&&s2.state==='review'&&Date.now()>=(s2.reviewAt||0)))return;
+var m=OFFER_META[id2];if(!m)return;
+s2.state='done';
+p.balance.available=round2(p.balance.available+m[1]);
+p.balance.pending=round2(p.balance.pending-m[1]);
+p.balance.earned=round2(p.balance.earned+m[1]);
+d.todayEarned=round2((d.todayEarned||0)+m[1]);
+var tid='TXN-'+rid(8);
+t.set(uRef().collection('txns').doc(tid),{id:tid,at:Date.now(),status:'completed',type:'offer',title:'Offer reward · '+m[0],amount:m[1]});
+t.set(uRef().collection('notifs').doc(),{at:Date.now(),read:false,kind:'reward',icon:'briefcase',title:'Offer reward approved',body:money(m[1])+' from “'+m[0]+'” has been added to your available balance.'})});
+t.update(uRef(),{balance:p.balance,daily:d,uoff:uo});
+ME=p;ME.daily=d;ME.uoff=uo})})}
+function loadNotifs(){
+return uRef().collection('notifs').orderBy('at','desc').limit(30).get()
+.then(function(snap){UNREAD=0;snap.forEach(function(d){if(!d.data().read)UNREAD++})})
+.catch(function(){UNREAD=0})}
+function liveTasks(){
+var d=normDaily(ME.daily),watched=0;
+Object.keys(d.videos||{}).forEach(function(k){watched+=d.videos[k]});
+var checked=ME.lastCheckin===ymd(),earned=d.todayEarned||0;
+return TASKS.map(function(t){
+var cur=t.id==='login'?(d.loginDone?1:0):t.id==='watch3'?Math.min(watched,3):
+t.id==='watch5'?Math.min(watched,5):t.id==='scratch2'?Math.min(d.scratched,2):
+t.id==='checkin'?(checked?1:0):Math.min(earned,t.goal);
+return{id:t.id,progress:cur,canClaim:cur>=t.goal&&(d.tasksClaimed||[]).indexOf(t.id)<0}})}
+function refreshHeader(){
+var bd=$('#bellBadge');if(bd){bd.style.display=UNREAD?'grid':'none';bd.textContent=UNREAD>9?'9+':UNREAD}}
+function calc(){
+var d=normDaily(ME.daily);
+var tasks=liveTasks();
+var checked=ME.lastCheckin===ymd();
+var y=ymd(Date.now()-864e5);
+var nextIdx=checked?(ME.streak-1)%7:(ME.lastCheckin===y?(ME.streak||0)%7:0);
+return{todayEarned:d.todayEarned||0,streak:ME.streak||0,
+claimable:tasks.filter(function(t){return t.canClaim}).length,
+checked:checked,nextReward:CHECKIN_REWARDS[nextIdx],
+videosLeft:VIDEOS.reduce(function(s,v){return s+Math.max(0,v.daily-(d.videos[v.id]||0))},0),
+videosTotal:VIDEOS.reduce(function(s,v){return s+v.daily},0),
+scratchLeft:SCRATCH_DAILY-d.scratched,
+spinsLeft:SPIN_DAILY-d.spins}}
+/* Banner — earned-today summary only (no claim chip) */
+function bannerHtml(d){
+return '<div class="earnban"><div class="tint tint-green" style="background:#fff">'+ic('coins')+'</div>'
++'<div class="et">You\'ve earned <b>&nbsp;'+money(d.todayEarned)+'&nbsp;</b> today'+(d.streak>0?' · '+d.streak+'-day streak':'')+'. Keep it going.</div></div>'}
+/* Feature card — shared design for all five methods.
+   ALWAYS links to href; only labels/colors vary per state. */
+function rcHtml(href,icon,tint,blue,chipTxt,title,desc,foot,bi,bt){
+return '<a class="rcard" href="'+href+'"><div class="rc-top"><span class="tint '+tint+'">'+ic(icon)+'</span>'
++'<span class="chip '+(blue?'chip-blue':'chip-mint')+'">'+chipTxt+'</span></div>'
++'<h3>'+title+'</h3><p>'+desc+'</p>'
++'<div class="rc-foot"><small>'+foot+'</small>'
++'<span class="btn '+(blue?'btn-primary':'btn-mint')+' btn-sm">'+ic(bi)+' '+bt+'</span></div></a>'}
+function rowHtml(href,icon,tint,title,desc,right){
+return '<a class="erow" href="'+href+'"><div class="tint '+tint+'">'+ic(icon)+'</div>'
++'<div class="ebody"><b>'+title+'</b><span>'+desc+'</span></div>'+(right||ic('chevron-right'))+'</a>'}
+function render(d){
+var sy=window.scrollY;
+var titleHtml='<div class="phead ptitle"><h1>Earn Hub</h1>'
++'<p>Every way to earn today — all rewards verified on our servers.</p></div>';
+/* Card order:
+   1. Watch & Earn   2. Scratch Card
+   3. Spin & Earn    4. Daily Tasks   5. Daily Check-In */
+var rcs=rcHtml('watch.html','play','tint-blue',true,'Earn up to ৳4','Watch & Earn',
+'Short sponsor ads — finish the timer and the reward is credited automatically.',
+d.videosLeft>0?d.videosLeft+' of '+d.videosTotal+' watches left today':'All watches done today','play','Watch now')
++rcHtml('scratch.html','gift','tint-amber',false,'Earn up to ৳10','Scratch Card',
+'Scratch the foil to reveal your reward — sealed by the server before you start.',
+d.scratchLeft>0?d.scratchLeft+' of '+SCRATCH_DAILY+' cards left today':'All cards done today','gift','Scratch now');
+var dcs=rcHtml('spin.html','disc-3','tint-amber',false,'Earn up to ৳5','Spin & Earn',
+'Spin the wheel once a day for a random bonus — every spin wins something.',
+d.spinsLeft>0?d.spinsLeft+' of '+SPIN_DAILY+' spins left today':'All spins done today','disc-3','Spin now')
++rcHtml('tasks.html','target','tint-green',false,'Earn up to ৳10','Daily Tasks',
+d.claimable?'Goals complete — your bonuses are waiting to be claimed.':'Fresh goals every day — watch, scratch, check in and earn.',
+d.claimable?d.claimable+' reward'+(d.claimable>1?'s':'')+' ready to claim':'Complete goals to claim bonuses','target','View tasks')
++rcHtml('checkin.html','calendar-check','tint-green',false,'Earn up to ৳10','Daily Check-In',
+d.checked?'Your next check-in reward unlocks tomorrow.':'Check in every day — rewards grow through the week, day 7 pays the most.',
+d.checked?'Next window opens tomorrow':'Today\'s reward: ৳'+d.nextReward,'calendar-check',d.checked?'View':'Check in');
+/* More ways — Offers & Campaigns is a SOON item (toast only, no nav) */
+var moreRows=
+'<a class="erow" data-soon="1"><div class="tint tint-blue">'+ic('puzzle')+'</div>'
++'<div class="ebody"><b>Offers &amp; Campaigns</b><span>Partnership campaigns from verified brands</span></div><span class="chip">Soon</span></a>'
++rowHtml('refer.html','users','tint-green','Refer & Earn',
+money0(REF_BONUS)+' for every qualified friend — they get '+money0(REF_FRIEND)+' to start',
+'<span class="chip chip-mint">Earn ৳50 / friend</span>')
++'<a class="erow" data-soon="1"><div class="tint tint-ink">'+ic('gamepad-2')+'</div>'
++'<div class="ebody"><b>Games</b><span>Play-and-earn arcade</span></div><span class="chip">Soon</span></a>'
++'<a class="erow" data-soon="1"><div class="tint tint-ink">'+ic('layout-grid')+'</div>'
++'<div class="ebody"><b>Surveys</b><span>Quick paid questionnaires</span></div><span class="chip">Soon</span></a>';
+ $('#view').innerHTML=titleHtml+bannerHtml(d)
++'<section><div class="sech"><h2>Recommended</h2></div><div class="rcgrid">'+rcs+'</div></section>'
++'<section class="sec"><div class="sech"><h2>Daily</h2></div><div class="rcgrid">'+dcs+'</div></section>'
++'<section class="sec"><div class="sech"><h2>More ways</h2></div><div class="card" style="padding:0;overflow:hidden">'+moreRows+'</div></section>'
++'<div class="note">'+ic('shield')+'<span>Availability is controlled by our servers — new earning methods appear here automatically when enabled. Every reward is validated before it reaches your balance.</span></div>';
+icons();
+window.scrollTo(0,sy);
+ $$('[data-soon]',document).forEach(function(r){
+r.addEventListener('click',function(e){e.preventDefault();toast('Feature coming soon','info','We will notify you when it opens up.')})});
+var dr=$('#drawer');
+if(dr&&!dr.classList.contains('open'))dr.dataset.filled='0';
+fillDrawer();
+try{sessionStorage.setItem(snapK(),$('#view').innerHTML)}catch(e){}}
+function fetchAll(){
+return retry(ensureProfile,1)
+.then(function(pid){ME=pid;
+return Promise.all([soft(sweepOffers()),loadNotifs()])})
+.then(function(){
+try{localStorage.setItem(CK,JSON.stringify({uid:UID,me:ME,unread:UNREAD,at:Date.now()}))}catch(e){}
+return true})}
+function logoutRedirect(){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem(CK);localStorage.removeItem('earnly_dash_cache_v1');
+Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('earnly_snap_')===0)sessionStorage.removeItem(k)})}catch(e){}
+location.replace('login.html')}
+/* AUTH — single authority, loop-proof. Logged out → login sheet (same as other pages). */
+var sawUser=false,handled=false;
+auth.onAuthStateChanged(function(u){
+if(!u){
+if(sawUser){logoutRedirect();return}
+showLoginSheet();return}
+if(handled)return;
+handled=true;sawUser=true;
+hideLoginSheet();
+UID=u.uid;localStorage.setItem('earnly_uid',UID);localStorage.setItem(FLAG,'1');
+fetchAll()
+.then(function(){render(calc());refreshHeader()})
+.catch(function(e){
+ $('#view').innerHTML='<div class="card" style="padding:24px;text-align:center"><b>Could not load</b><p style="color:var(--ink2);font-size:13.5px;margin-top:6px">'+((e&&e.message)||'unknown error')+'</p><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="location.reload()">Try again</button></div>'})});
+</script>
+</body>
+</html>

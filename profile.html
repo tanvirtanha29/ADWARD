@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Profile — Adward</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%230D63F2"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F6F8F7;--line:#E6ECE8;--line2:#EEF2F0;--ink:#101A14;--ink2:#57645C;--ink3:#94A29A;--mint:#E9F7EE;--mint3:#C4E8D2;--green:#16A15C;--green-d:#0B7B44;--blue:#0D63F2;--blue-d:#0A52CC;--blue-s:#EBF2FE;--amber:#B25E09;--amber-s:#FDF1DF;--red:#D92D20;--red-s:#FCEBEB;--sh-sm:0 1px 2px rgba(16,24,40,.05);--sh-md:0 8px 24px rgba(16,24,40,.08);--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif;--brand:'Space Grotesk','Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}button{font-family:var(--font)}
+.grow{flex:1}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14.5px;border:1px solid transparent;border-radius:12px;height:46px;padding:0 20px;cursor:pointer;transition:.18s;background:none;color:var(--ink)}
+.btn svg{width:17px;height:17px}.btn:active{transform:scale(.975)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-ghost{background:#fff;border-color:var(--line)}
+.btn-sm{height:37px;padding:0 15px;font-size:13.5px;border-radius:10px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#F2F6F3;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.chip svg{width:12px;height:12px}.chip-mint{background:var(--mint);color:var(--green-d)}
+.tint{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}.tint svg{width:19px;height:19px}
+.tint-ink{background:#F2F6F3;color:var(--ink2)}
+.ico-btn{width:40px;height:40px;border-radius:12px;border:none;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--ink)}.ico-btn:hover{background:var(--line2)}.ico-btn svg{width:21px;height:21px}
+.avatar{border-radius:50%;background:var(--mint);border:1px solid var(--mint3);color:var(--green-d);display:grid;place-items:center;font:800 13px var(--num);flex:none}
+.dhdr{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line2);height:60px;display:flex;align-items:center;gap:8px;padding:0 16px}
+/* Site name in Space Grotesk — same font the checkin page uses for the brand */
+.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font:800 17px var(--brand)}
+/* Mark 37×37, image fills it; header height stays exactly 60px */
+.brand .mark{width:37px;height:37px;border-radius:11px;background:var(--blue);color:#fff;display:grid;place-items:center;overflow:hidden;flex:none}
+.brand .mark img{width:100%;height:100%;object-fit:cover;display:block}
+.dover{position:fixed;inset:0;background:rgba(16,26,20,.42);opacity:0;visibility:hidden;transition:.22s;z-index:90}.dover.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(216px,56vw);background:#fff;z-index:95;transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.3,1);display:flex;flex-direction:column;border-left:1px solid var(--line2);padding:16px 10px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}.drawer.open{transform:none}
+.dprof{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid var(--line2);margin-bottom:6px}.dprof b{display:block;font-size:14px}.dprof span{font:700 12px var(--num);color:var(--green-d)}
+.sgroup{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--ink3);text-transform:uppercase;padding:12px 10px 6px}
+.slink{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;color:var(--ink2);font-size:13.5px;font-weight:600;border:none;background:none;width:100%;text-align:left;cursor:pointer;text-decoration:none}.slink svg{width:17px;height:17px;flex:none}.slink:hover{background:#F4F8F5;color:var(--ink)}.slink.on{background:var(--blue-s);color:var(--blue)}
+.dfoot{margin-top:auto;border-top:1px solid var(--line2);padding-top:10px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line2);display:flex;padding:5px 6px calc(5px + env(safe-area-inset-bottom))}
+.bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 3px;color:var(--ink3);font-size:10.5px;font-weight:700;text-decoration:none}
+.bnav .bi{display:flex;padding:5px 16px;border-radius:999px;transition:background .18s}
+.bnav svg{width:20px;height:20px}.bnav a.on{color:var(--blue)}.bnav a.on .bi{background:var(--blue-s)}
+.netban{position:sticky;top:60px;z-index:39;background:var(--amber-s);color:var(--amber);font-size:13px;font-weight:700;display:none;align-items:center;justify-content:center;gap:8px;padding:8px 14px}.netban svg{width:15px;height:15px}
+.main{max-width:680px;margin:0 auto;padding:18px 16px calc(96px + env(safe-area-inset-bottom))}
+@media(min-width:1024px){.main{max-width:1020px;padding:28px 32px 80px}}
+.phead{margin-bottom:18px}.ptitle h1{font:800 22px/1.25 var(--num)}.ptitle p{color:var(--ink2);font-size:14px;margin-top:4px}
+.sec{margin-top:22px}
+.erow{display:flex;align-items:center;gap:13px;padding:15px 16px;border-bottom:1px solid var(--line2);cursor:pointer;transition:background .14s;color:inherit;text-decoration:none;width:100%;border-left:none;border-right:none;border-top:none;background:none;font-family:var(--font);text-align:left}
+.erow:last-child{border-bottom:none}
+.erow:hover{background:#FBFDFC}
+.ebody{flex:1;min-width:0}.ebody b{font-size:14.5px;font-weight:800;display:block}.ebody span{font-size:12.5px;color:var(--ink2);font-weight:500}
+.trow{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line2)}.trow:last-child{border:none}
+.tinfo{flex:1;min-width:0}
+.tinfo .t2{font-size:12px;color:var(--ink3);font-weight:700}
+.tinfo .t1{font-size:14px;font-weight:700;margin-top:1px}
+.field{margin-bottom:15px}.field>label{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:7px}
+.input{width:100%;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 14px;font:600 15px var(--font);background:#fff;color:var(--ink)}
+.input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-s)}
+.input::placeholder{color:#AEBBB2;font-weight:500}
+/* Locked (read-only) fields in Edit profile — email & phone */
+.input[readonly]{background:var(--line2);border-color:var(--line2);color:var(--ink3);cursor:not-allowed;box-shadow:none}
+.flock{font-size:11.5px;color:var(--ink3);font-weight:600;margin-top:5px;display:flex;align-items:center;gap:4px}
+.flock svg{width:11px;height:11px}
+.spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(127,127,127,.3);border-top-color:currentColor;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.sw{position:relative;display:inline-block;width:42px;height:24px;flex:none}
+.sw input{display:none}
+.sw i{position:absolute;inset:0;background:var(--line);border-radius:99px;transition:.2s;cursor:pointer;display:block}
+.sw i::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw input:checked+i{background:var(--blue)}
+.sw input:checked+i::after{left:21px}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line2);font-size:14px;text-align:left}
+.mrow:last-child{border:none}
+.legal p{font-size:13.5px;color:var(--ink2);margin-bottom:10px}.legal h4{font-size:14px;margin:14px 0 4px}
+.note{display:flex;gap:11px;padding:13px 15px;background:var(--mint);border:1px solid var(--mint3);border-radius:14px;font-size:13px;color:var(--ink2);font-weight:500;margin-top:16px}
+.note svg{width:17px;height:17px;color:var(--green-d);flex:none;margin-top:1px}
+.sk{background:#E7EEE9;border-radius:10px;position:relative;overflow:hidden}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shim 1.4s infinite}
+@keyframes shim{to{transform:translateX(100%)}}
+.sheet-back{position:fixed;inset:0;background:rgba(16,26,20,.55);z-index:150;display:flex;align-items:flex-end;justify-content:center;animation:fade .25s;backdrop-filter:blur(3px)}
+@keyframes fade{from{opacity:0}}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:26px 22px calc(26px + env(safe-area-inset-bottom));animation:mup .35s;text-align:center}
+@keyframes mup{from{transform:translateY(60px);opacity:0}}
+.sheet .grip{width:44px;height:5px;border-radius:99px;background:var(--line2);margin:0 auto 18px}
+.sheet .slogo{width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;margin:0 auto 14px;overflow:hidden;flex:none}
+.sheet .slogo img{width:100%;height:100%;object-fit:cover;display:block}
+.sheet h2{font:800 20px var(--num);margin-bottom:6px}
+.sheet p{color:var(--ink2);font-size:13.5px;font-weight:500;margin-bottom:20px}
+.sheet .acts{display:flex;gap:10px}
+.sheet .acts .btn{flex:1;height:48px}
+#toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:min(92vw,390px);pointer-events:none}
+.toast{pointer-events:auto;display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-md);animation:tin .3s;cursor:pointer}
+@keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+.toast .ti{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none}.toast .ti svg{width:15px;height:15px}
+.toast.t-success .ti{background:var(--mint);color:var(--green-d)}.toast.t-error .ti{background:var(--red-s);color:var(--red)}
+.toast.t-info .ti{background:var(--blue-s);color:var(--blue)}.toast.t-warn .ti{background:var(--amber-s);color:var(--amber)}
+.toast b{display:block;font-size:13.5px}.toast span{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px}
+.mback{position:fixed;inset:0;background:rgba(16,26,20,.48);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.mbox{background:#fff;width:100%;max-width:460px;border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;animation:mup .3s}
+@media(min-width:640px){.mback{align-items:center;padding:20px}.mbox{border-radius:22px;animation:mp .22s}@keyframes mp{from{transform:scale(.94);opacity:0}}}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.mhead h3{font-size:17px;font-weight:800;font-family:var(--num)}
+.macts{display:flex;gap:10px;margin-top:18px}.macts .btn{flex:1}
+/* ===== FIX: remove Android/WebView tap highlight + tap focus ring ONLY ===== */
+*{-webkit-tap-highlight-color:transparent !important}
+a,button,[role="button"],[onclick],input,label,.bnav a,.bnav .bi,.ico-btn,.slink,.btn,.card,.toast,.dover,.erow,.sw{-webkit-tap-highlight-color:transparent !important}
+a:focus:not(:focus-visible),button:focus:not(:focus-visible),.bnav a:focus:not(:focus-visible),.bnav .bi:focus:not(:focus-visible),.ico-btn:focus:not(:focus-visible),.slink:focus:not(:focus-visible),.btn:focus:not(:focus-visible),.toast:focus:not(:focus-visible),.erow:focus:not(:focus-visible){outline:none !important}
+/* fallback for very old Android WebView without :focus-visible (touch devices only) */
+@media (hover:none) and (pointer:coarse){a:focus,button:focus,.bnav a:focus,.bnav .bi:focus,.ico-btn:focus,.slink:focus,.btn:focus,.toast:focus,.erow:focus{outline:none !important}}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div id="app"></div>
+<script>
+/* ============ SYNC PHASE ============ */
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return [].slice.call((r||document).querySelectorAll(s))}
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function initials(n){return (n||'').trim().split(/\s+/).map(function(w){return w[0]}).slice(0,2).join('').toUpperCase()}
+var FLAG='earnly_logged_in';
+
+/* ================== SITE LOGO (auto-invalidating cache) ==================
+   • Same shared cache as checkin/earn/index/history/notifications
+     (earnly_site_logo_v2) — one download serves every page.
+   • Cache stores {url, data} — change LOGO_URL in code and the old
+     cached copy is discarded + re-fetched automatically.
+   • Legacy v1 key (raw base64, old format) is removed on first run.
+   • Quality: original bytes kept if small (<1.2MB data URL); larger
+     sources are downscaled once to 512px via high-quality canvas.
+========================================================================== */
+var LOGO_URL='https://i.ibb.co.com/7J62W1Vy/super-resolution-20260902102855933.png';
+var LOGO_KEY='earnly_site_logo_v2';
+var LOGO_LEGACY_KEYS=['earnly_watch_ad_logo_v1'];
+function logoGet(){
+try{
+var raw=localStorage.getItem(LOGO_KEY);
+if(!raw)return '';
+var o=JSON.parse(raw);
+/* URL changed since it was cached → stale, drop it */
+if(!o||o.url!==LOGO_URL||!o.data)return '';
+return o.data}catch(e){return ''}}
+function logoSrc(){return logoGet()||LOGO_URL}
+function updateLogoImg(){
+var l=logoGet();if(!l)return;
+var im=$('#brandLogo')||$('#sheetLogo');
+if(im)im.src=l}
+function cacheLogo(){
+/* wipe old-format caches from previous versions */
+try{LOGO_LEGACY_KEYS.forEach(function(k){localStorage.removeItem(k)})}catch(e){}
+if(logoGet())return; /* this URL is already cached — done */
+var save=function(d){try{localStorage.setItem(LOGO_KEY,JSON.stringify({url:LOGO_URL,data:d}))}catch(e){/* quota */}};
+var viaCanvas=function(img){
+try{
+var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+if(!w||!h)return;
+var scale=Math.min(1,512/Math.max(w,h));
+var c=document.createElement('canvas');
+c.width=Math.max(1,Math.round(w*scale));
+c.height=Math.max(1,Math.round(h*scale));
+var cx=c.getContext('2d');
+cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+cx.drawImage(img,0,0,c.width,c.height);
+save(c.toDataURL('image/png'));
+updateLogoImg()}catch(e){/* tainted canvas — remote URL stays in use */}};
+fetch(LOGO_URL,{mode:'cors'}).then(function(r){
+if(!r.ok)throw new Error('http '+r.status);return r.blob()}).then(function(b){
+return new Promise(function(res,rej){
+var fr=new FileReader();fr.onload=function(){res(fr.result)};fr.onerror=rej;fr.readAsDataURL(b)})}).then(function(dataUrl){
+/* small source → keep the original bytes untouched (best quality);
+   big source → a raw data URL would blow the ~5MB localStorage
+   quota, so downscale once to the crisp 512px copy instead */
+if(dataUrl&&dataUrl.length<1200000){save(dataUrl);updateLogoImg();return}
+var probe=new Image();
+probe.onload=function(){viaCanvas(probe)};
+probe.src=dataUrl}).catch(function(){
+var img=new Image();img.crossOrigin='anonymous';
+img.onload=function(){viaCanvas(img)};
+img.src=LOGO_URL})}
+
+var NAV=[
+{g:'Overview',items:[['index','house','Dashboard'],['earn','zap','Earn Hub']]},
+{g:'Earning',items:[['watch','play','Watch & Earn'],['scratch','gift','Scratch Card'],['tasks','target','Daily Tasks'],['checkin','calendar-check','Daily Check-In'],['spin','disc-3','Spin & Earn'],['offers','puzzle','Offers'],['refer','users','Refer & Earn']]},
+{g:'Account',items:[['wallet','wallet','Wallet'],['withdraw','banknote','Withdraw'],['history','history','Transactions'],['notifications','bell','Notifications'],['profile','user','Profile']]}];
+var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtD(t){var d=new Date(t);return d.getDate()+' '+MONS[d.getMonth()]+' '+d.getFullYear()}
+function sk(w,h,r){return '<span class="sk" style="display:block;width:'+w+'px;height:'+h+'px'+(r?';border-radius:'+r+'px':'')+'"></span>'}
+function mountShell(route){
+var bnavHtml=[['index','house','Home'],['earn','zap','Earn'],['wallet','wallet','Wallet'],['history','history','History'],['profile','user','Profile']].map(function(it){
+return '<a href="'+it[0]+'.html" data-route="'+it[0]+'"><span class="bi">'+ic(it[1])+'</span>'+it[2]+'</a>'}).join('');
+ $('#app').innerHTML=
+'<header class="dhdr"><a class="brand" href="index.html"><span class="mark"><img id="brandLogo" src="'+logoSrc()+'" alt="Adward"></span>Adward</a><div class="grow"></div>'
++'<button class="ico-btn" id="hBell">'+ic('bell')+'</button>'
++'<button class="ico-btn" id="burger">'+ic('menu')+'</button></header>'
++'<div class="netban" id="netban">'+ic('cloud-off')+" You're offline — rewards will sync once you reconnect</div>"
++'<div class="dover" id="dover"></div><aside class="drawer" id="drawer"></aside>'
++'<main class="main" id="view"></main>'
++'<nav class="bnav">'+bnavHtml+'</nav>';
+icons();
+ $('#hBell').onclick=function(){location.href='notifications.html'};
+var dr=$('#drawer'),ov=$('#dover');
+ $('#burger').onclick=function(){fillDrawer();dr.classList.add('open');ov.classList.add('open');document.body.style.overflow='hidden'};
+ov.onclick=closeDr;
+ $$('.bnav a[data-route]').forEach(function(a){a.classList.toggle('on',a.dataset.route===route)});
+var up=function(){var b=$('#netban');if(b)b.style.display=navigator.onLine?'none':'flex'};
+addEventListener('offline',function(){up()});addEventListener('online',function(){up()});up()}
+function closeDr(){var dr=$('#drawer'),ov=$('#dover');
+dr.classList.remove('open');ov.classList.remove('open');document.body.style.overflow=''}
+function loadCache(){try{return JSON.parse(localStorage.getItem('earnly_dash_cache_v1'))||null}catch(e){}return null}
+var navType=(performance.getEntriesByType('navigation')[0]||{}).type||'navigate';
+var snapKey='earnly_snap_profile_'+(localStorage.getItem('earnly_uid')||'anon');
+if(navType==='reload'){sessionStorage.removeItem(snapKey);sessionStorage.removeItem('sc_profile')}
+var ME=(function(){var c=loadCache();return c?c.me:null})();
+function drawerHtml(){
+return '<div class="dprof"><span class="avatar" style="width:42px;height:42px;font-size:14px">'+initials(ME.name)+'</span>'
++'<div><b>'+ME.name+'</b><span>'+(ME.balance?money(ME.balance.available):'')+'</span></div></div>'
++NAV.map(function(g){return '<div class="sgroup">'+g.g+'</div>'+g.items.map(function(it){
+return '<a class="slink" data-route="'+it[0]+'" href="'+it[0]+'.html">'+ic(it[1])+it[2]+'</a>'}).join('')}).join('')
++'<div class="dfoot"><button class="slink" id="drOut" style="color:var(--red)">'+ic('log-out')+'Log out</button></div>'}
+function fillDrawer(){
+var dr=$('#drawer');
+if(!dr||dr.dataset.filled==='1'||!ME)return;
+dr.dataset.filled='1';dr.innerHTML=drawerHtml();icons();
+ $('#drOut').onclick=function(){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem('earnly_dash_cache_v1');localStorage.removeItem('earnly_earn_cache_v1');
+Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('earnly_snap_')===0)sessionStorage.removeItem(k)})}catch(e){}
+firebase.auth().signOut().then(function(){location.href='login.html'})};
+ $$('a',dr).forEach(function(a){a.addEventListener('click',closeDr)})}
+function skelMain(){
+var i,s='';
+s+='<div style="margin-bottom:18px">'+sk(90,22,8)+'<div style="height:8px"></div>'+sk(200,13,6)+'</div>';
+s+='<div class="card" style="padding:20px;display:flex;gap:15px;align-items:center;margin-bottom:16px">'
++sk(60,60,999)+'<div style="flex:1">'+sk(110,16,6)+'<div style="height:8px"></div>'+sk(140,12,5)+'</div></div>';
+s+='<div class="card" style="padding:4px 16px;margin-bottom:16px">';
+for(i=0;i<3;i++){s+='<div class="trow">'+sk(34,34,10)+'<div class="tinfo">'+sk(70,10,4)+'<div style="height:6px"></div>'+sk(130,13,5)+'</div></div>'}
+s+='</div>';
+s+='<div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">';
+for(i=0;i<4;i++){s+='<div class="erow" style="cursor:default">'+sk(40,40,12)+'<div class="ebody">'+sk(120,14,6)+'</div></div>'}
+s+='</div>';
+return s}
+mountShell('profile');
+var _snap=sessionStorage.getItem(snapKey);
+if(_snap){$('#view').innerHTML=_snap;icons()}
+else{$('#view').innerHTML=skelMain();icons()}
+/* cache the site logo immediately (runs once, silently) */
+cacheLogo();
+/* ===== LOGIN SHEET ===== */
+function showLoginSheet(){
+if($('#loginSheet'))return;
+var b=document.createElement('div');b.id='loginSheet';b.className='sheet-back';
+b.innerHTML='<div class="sheet"><div class="grip"></div>'
++'<span class="slogo"><img id="sheetLogo" src="'+logoSrc()+'" alt="Adward"></span>'
++'<h2>Sign in to view your profile</h2>'
++'<p>Your account details, referral code, security settings and notification preferences live here.</p>'
++'<div class="acts">'
++'<a class="btn btn-ghost" href="login.html">'+ic('log-in')+' Sign in</a>'
++'<a class="btn btn-primary" href="register.html">'+ic('user-plus')+' Create account</a>'
++'</div><small>Passwords are stored only as irreversible hashes</small></div>';
+document.body.appendChild(b);icons()}
+function hideLoginSheet(){var b=$('#loginSheet');if(b)b.remove()}
+/* ============ ASYNC PHASE ============ */
+var firebaseConfig={apiKey:"AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",authDomain:"earning-app-6d638.firebaseapp.com",projectId:"earning-app-6d638",storageBucket:"earning-app-6d638.firebasestorage.app",messagingSenderId:"813497830586",appId:"1:813497830586:web:8f728409eaaccd08c34683"};
+firebase.initializeApp(firebaseConfig);
+var auth=firebase.auth(),fs=firebase.firestore();
+function isEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)}
+function isPhone(v){return /^01[3-9]\d{8}$/.test(v)}
+function hashPw(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return 'h'+h.toString(16)}
+function toast(t,type,sub){type=type||'success';var el=document.createElement('div');el.className='toast t-'+type;
+el.innerHTML='<span class="ti">'+ic({success:'circle-check',error:'circle-x',info:'info',warn:'triangle-alert'}[type])+'</span><div><b>'+t+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</div>';
+ $('#toasts').appendChild(el);icons();
+var k=function(){el.classList.add('out');setTimeout(function(){el.remove()},240)};el.onclick=k;setTimeout(k,3400)}
+function openModal(o){var b=document.createElement('div');b.className='mback';
+b.innerHTML='<div class="mbox"><div class="mhead"><h3>'+o.title+'</h3><button class="ico-btn" data-close>'+ic('x')+'</button></div>'+o.body+'</div>';
+document.body.appendChild(b);icons();var c=function(){b.remove()};
+b.addEventListener('click',function(e){if(e.target===b)c()});
+ $$('[data-close]',b).forEach(function(x){x.onclick=c});return{close:c,root:b}}
+function btnLoad(b,on){if(on){b.dataset.h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spinner"></span> Please wait…'}
+else if(b.dataset.h){b.innerHTML=b.dataset.h;b.disabled=false;icons()}}
+var UID=null,U=null;
+var view=$('#view');
+function uRef(){return fs.collection('users').doc(UID)}
+function snapK(){return 'earnly_snap_profile_'+UID}
+function saveME(){try{var old=JSON.parse(localStorage.getItem('earnly_dash_cache_v1')||'{}');old.uid=UID;old.me=U;localStorage.setItem('earnly_dash_cache_v1',JSON.stringify(old))}catch(e){}}
+function pinfo(i,l,v){return '<div class="erow" style="cursor:default"><div class="tint tint-ink" style="width:34px;height:34px">'+ic(i)+'</div>'
++'<div class="tinfo"><div class="t2">'+l+'</div><div class="t1">'+v+'</div></div></div>'}
+function prow(id,icon,label,sub,col){return '<button type="button" class="erow" id="'+id+'">'
++'<div class="tint tint-ink">'+ic(icon)+'</div>'
++'<div class="ebody"><b style="color:'+(col||'inherit')+'">'+label+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</div>'
++ic('chevron-right')+'</button>'}
+function render(){
+view.innerHTML='<div class="phead ptitle"><h1>Profile</h1><p>Your account details and settings.</p></div>'
++'<div class="card" style="padding:20px;display:flex;gap:15px;align-items:center;margin-bottom:16px">'
++'<span class="avatar" style="width:60px;height:60px;font-size:20px">'+initials(U.name)+'</span>'
++'<div style="flex:1;min-width:0"><b style="font-size:17px">'+U.name+'</b>'
++'<p style="font-size:13px;color:var(--ink2);font-weight:600">'+(U.contact||'')+'</p>'
++'<span class="chip chip-mint" style="margin-top:6px">'+ic('shield-check')+' Verified account</span></div></div>'
++'<div class="card" style="padding:4px 16px;margin-bottom:16px">'
++pinfo('hash','User ID',U.id||UID)
++pinfo('gift','Referral code',U.refCode)
++pinfo('calendar','Member since',fmtD(U.joinedAt))+'</div>'
++'<div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">'
++prow('pfEdit','user-cog','Edit profile','Name only — email and phone are locked')
++prow('pfPw','lock','Change password')
++prow('pfNotif','bell','Notification settings')
++prow('pfSec','shield-check','Security')+'</div>'
++'<div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">'
++prow('pfTerms','file-text','Terms & Conditions')
++prow('pfPrivacy','file-lock','Privacy Policy')
++prow('pfHelp','life-buoy','Help & Support')+'</div>'
++'<div class="card" style="padding:0;overflow:hidden">'
++prow('pfLogout','log-out','Log out','','var(--red)')+'</div>'
++'<div class="note">'+ic('shield')+'<span>Passwords are stored only as irreversible hashes. All balance changes happen on our servers — nothing here can be edited to affect your balance.</span></div>';
+icons();
+ $('#pfEdit').addEventListener('click',editProfile);
+ $('#pfPw').addEventListener('click',changePw);
+ $('#pfNotif').addEventListener('click',notifSettings);
+ $('#pfSec').addEventListener('click',security);
+ $('#pfTerms').addEventListener('click',function(){openModal({title:'Terms & Conditions',body:'<div class="legal"><h4>1. Earning</h4><p>Rewards are only granted after server-side verification of task completion. Attempting to manipulate timers, scripts or multiple accounts may result in balance forfeiture.</p><h4>2. Withdrawals</h4><p>Withdrawal requests are reviewed before processing. Fees, minimums and timelines are shown before each request.</p><h4>3. Referrals</h4><p>Referral rewards unlock when the invited user completes their first daily check-in. One account per person.</p></div>'})});
+ $('#pfPrivacy').addEventListener('click',function(){openModal({title:'Privacy Policy',body:'<div class="legal"><h4>Data we collect</h4><p>Account details, earning activity and transaction records — used only to operate your account and process withdrawals.</p><h4>What we never do</h4><p>We never sell your personal data to advertisers or partners.</p><h4>Your control</h4><p>Update your details anytime, or request deletion through Help &amp; Support.</p></div>'})});
+ $('#pfHelp').addEventListener('click',function(){openModal({title:'Help & Support',body:'<div class="legal"><h4>Withdrawals</h4><p>Mobile wallets process within 24 hours; bank transfers within 1–3 business days.</p><h4>Reward missing?</h4><p>Pending rewards are shown on your Wallet page until confirmed.</p><h4>Contact</h4><p>Support: <b>support@earnly.demo</b> · Replies within 24 hours.</p></div>'})});
+ $('#pfLogout').addEventListener('click',function(){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem('earnly_dash_cache_v1');localStorage.removeItem('earnly_earn_cache_v1');
+Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('earnly_snap_')===0)sessionStorage.removeItem(k)})}catch(e){}
+firebase.auth().signOut().then(function(){location.href='login.html'})});
+try{sessionStorage.setItem(snapK(),view.innerHTML)}catch(e){}}
+/* Edit profile — ONLY the name is editable.
+   Email and phone are displayed read-only (locked), matching the
+   server-side rule that they are set at registration. */
+function editProfile(){
+var m=openModal({title:'Edit profile',body:
+'<div class="field"><label>Full name</label><input class="input" id="eN" value="'+(U.name||'')+'"></div>'
++'<div class="field"><label>Email</label><input class="input" id="eE" type="email" value="'+(U.email||'')+'" readonly>'
++'<div class="flock">'+ic('lock')+' Email can\u2019t be changed</div></div>'
++'<div class="field"><label>Mobile number</label><input class="input" id="eP" value="'+(U.phone||'')+'" readonly>'
++'<div class="flock">'+ic('lock')+' Mobile number can\u2019t be changed</div></div>'
++'<button class="btn btn-primary" style="width:100%" id="eS">Save name</button>'});
+ $('#eS',m.root).addEventListener('click',function(e){
+btnLoad(e.target,true);
+try{
+var n=$('#eN',m.root).value;
+if(n.trim().length<3)throw{message:'Name must be at least 3 characters'};
+var up={name:n.trim()};
+uRef().update(up).then(function(){
+return auth.currentUser.updateProfile({displayName:up.name})})
+.then(function(){
+Object.assign(U,up);saveME();
+btnLoad(e.target,false);m.close();toast('Name updated','success');render()})
+.catch(function(err){btnLoad(e.target,false);toast(err.message||'Could not update name','error')})}
+catch(err){btnLoad(e.target,false);toast(err.message,'error')}})}
+/* Change password — the button only works once current, new and
+   confirm fields are ALL filled. Otherwise a "write first" toast
+   names exactly which field is missing. */
+function changePw(){
+var m=openModal({title:'Change password',body:
+'<div class="field"><label>Current password</label><input class="input" id="c0" type="password" autocomplete="current-password" placeholder="Enter your current password"></div>'
++'<div class="field"><label>New password</label><input class="input" id="c1" type="password" placeholder="At least 6 characters" autocomplete="new-password"></div>'
++'<div class="field"><label>Confirm new password</label><input class="input" id="c2" type="password" autocomplete="new-password" placeholder="Repeat the new password"></div>'
++'<button class="btn btn-primary" style="width:100%" id="cS">Update password</button>'});
+ $('#cS',m.root).addEventListener('click',function(e){
+var c0=$('#c0',m.root).value,c1=$('#c1',m.root).value,c2=$('#c2',m.root).value;
+/* write-first validation — nothing runs until every field is filled */
+if(!c0){toast('Write your current password first','warn','The update button works only after all fields are filled');return}
+if(!c1){toast('Write a new password first','warn','Use at least 6 characters');return}
+if(c1.length<6){toast('New password is too short','warn','Use at least 6 characters');return}
+if(!c2){toast('Confirm your new password first','warn','Repeat the new password in the last field');return}
+if(c1!==c2){toast('New passwords don\u2019t match','error');return}
+btnLoad(e.target,true);
+var cred=firebase.auth.EmailAuthProvider.credential(auth.currentUser.email,c0);
+auth.currentUser.reauthenticateWithCredential(cred).then(function(){
+return auth.currentUser.updatePassword(c1)}).then(function(){
+btnLoad(e.target,false);m.close();toast('Password updated','success')})
+.catch(function(err){
+btnLoad(e.target,false);
+toast(err.code==='auth/wrong-password'||err.code==='auth/invalid-credential'?'Your current password is incorrect':(err.message||'Could not update password'),'error')})})}
+function notifSettings(){
+var st=Object.assign({push:true,email:true,tips:false},U.settings||{});
+var m=openModal({title:'Notification settings',body:
+[['push','Push notifications','Rewards, withdrawals and streak reminders'],
+['email','Email updates','Weekly earning summaries'],
+['tips','Earning tips','Occasional tips to earn more']].map(function(s){
+return '<div class="mrow"><div style="flex:1"><b style="font-family:var(--font);font-size:14px">'+s[1]+'</b><br>'
++'<span style="font-size:12.5px;color:var(--ink2)">'+s[2]+'</span></div>'
++'<label class="sw"><input type="checkbox" data-set="'+s[0]+'" '+(st[s[0]]?'checked':'')+'><i></i></label></div>'}).join('')
++'<button class="btn btn-primary" style="width:100%" id="ns" >Save preferences</button>'});
+ $('#ns',m.root).addEventListener('click',function(e){
+ $$('[data-set]',m.root).forEach(function(c){st[c.dataset.set]=c.checked});
+uRef().update({settings:st}).then(function(){
+U.settings=st;saveME();m.close();toast('Preferences saved','success')})})}
+function security(){
+var m=openModal({title:'Security',body:
+'<div class="note" style="margin:0 0 14px">'+ic('shield-check')+'<span>All balance changes happen on our servers. Passwords are stored only as irreversible hashes, and rewards can\u2019t be claimed by manipulating timers.</span></div>'
++'<div class="mrow"><span>Active session</span><b style="font-family:var(--font);font-size:13px">This device</b></div>'
++'<div class="mrow"><span>Two-factor authentication</span><b style="font-family:var(--font);font-size:13px">Coming soon</b></div>'
++'<button class="btn" style="width:100%;margin-top:16px;background:var(--red-s);color:var(--red)" id="so">'+ic('log-out')+' Log out other devices</button>'});
+ $('#so',m.root).addEventListener('click',function(e){
+btnLoad(e.target,true);
+toast('All other sessions are managed by Firebase Auth','info','This device remains signed in.')})}
+var sawUser=false,handled=false;
+auth.onAuthStateChanged(function(u){
+if(!u){
+if(sawUser){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem('earnly_dash_cache_v1');localStorage.removeItem('earnly_earn_cache_v1');
+Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('earnly_snap_')===0)sessionStorage.removeItem(k)})}catch(e){}
+location.replace('login.html');return}
+showLoginSheet();return}
+if(handled)return;handled=true;sawUser=true;
+hideLoginSheet();
+UID=u.uid;localStorage.setItem('earnly_uid',UID);localStorage.setItem(FLAG,'1');
+if(!U){var c=loadCache();if(c&&c.me)U=c.me}
+if(!U){location.replace('index.html');return}
+U.id=UID;
+uRef().get().then(function(snap){if(snap.exists){U=snap.data();U.id=UID;saveME()};render()})
+.catch(function(){render()})});
+</script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Transactions — Adward</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%230D63F2"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F6F8F7;--line:#E6ECE8;--line2:#EEF2F0;--ink:#101A14;--ink2:#57645C;--ink3:#94A29A;--mint:#E9F7EE;--mint3:#C4E8D2;--green:#16A15C;--green-d:#0B7B44;--blue:#0D63F2;--blue-d:#0A52CC;--blue-s:#EBF2FE;--amber:#B25E09;--amber-s:#FDF1DF;--red:#D92D20;--red-s:#FCEBEB;--sh-sm:0 1px 2px rgba(16,24,40,.05);--sh-md:0 8px 24px rgba(16,24,40,.08);--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif;--brand:'Space Grotesk','Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}button{font-family:var(--font)}
+.grow{flex:1}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14.5px;border:1px solid transparent;border-radius:12px;height:46px;padding:0 20px;cursor:pointer;transition:.18s;background:none;color:var(--ink)}
+.btn svg{width:17px;height:17px}.btn:active{transform:scale(.975)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-ghost{background:#fff;border-color:var(--line)}
+.btn-sm{height:37px;padding:0 15px;font-size:13.5px;border-radius:10px}
+.tint{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}.tint svg{width:19px;height:19px}
+.tint-blue{background:var(--blue-s);color:var(--blue)}.tint-green{background:var(--mint);color:var(--green-d)}.tint-amber{background:var(--amber-s);color:var(--amber)}.tint-ink{background:#F2F6F3;color:var(--ink2)}
+.ico-btn{width:40px;height:40px;border-radius:12px;border:none;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--ink)}.ico-btn:hover{background:var(--line2)}.ico-btn svg{width:21px;height:21px}
+.dhdr{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line2);height:60px;display:flex;align-items:center;gap:8px;padding:0 16px}
+/* Site name in Space Grotesk — same font the checkin page uses for the brand */
+.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font:800 17px var(--brand)}
+/* Mark 37×37, image fills it; header height stays exactly 60px */
+.brand .mark{width:37px;height:37px;border-radius:11px;background:var(--blue);color:#fff;display:grid;place-items:center;overflow:hidden;flex:none}
+.brand .mark img{width:100%;height:100%;object-fit:cover;display:block}
+.dover{position:fixed;inset:0;background:rgba(16,26,20,.42);opacity:0;visibility:hidden;transition:.22s;z-index:90}.dover.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(216px,56vw);background:#fff;z-index:95;transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.3,1);display:flex;flex-direction:column;border-left:1px solid var(--line2);padding:16px 10px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}.drawer.open{transform:none}
+.dprof{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid var(--line2);margin-bottom:6px}.dprof b{display:block;font-size:14px}.dprof span{font:700 12px var(--num);color:var(--green-d)}
+.sgroup{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--ink3);text-transform:uppercase;padding:12px 10px 6px}
+.slink{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;color:var(--ink2);font-size:13.5px;font-weight:600;border:none;background:none;width:100%;text-align:left;cursor:pointer;text-decoration:none}.slink svg{width:17px;height:17px;flex:none}.slink:hover{background:#F4F8F5;color:var(--ink)}.slink.on{background:var(--blue-s);color:var(--blue)}
+.dfoot{margin-top:auto;border-top:1px solid var(--line2);padding-top:10px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line2);display:flex;padding:5px 6px calc(5px + env(safe-area-inset-bottom))}
+.bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 3px;color:var(--ink3);font-size:10.5px;font-weight:700;text-decoration:none}
+.bnav .bi{display:flex;padding:5px 16px;border-radius:999px;transition:background .18s}
+.bnav svg{width:20px;height:20px}.bnav a.on{color:var(--blue)}.bnav a.on .bi{background:var(--blue-s)}
+.netban{position:sticky;top:60px;z-index:39;background:var(--amber-s);color:var(--amber);font-size:13px;font-weight:700;display:none;align-items:center;justify-content:center;gap:8px;padding:8px 14px}.netban svg{width:15px;height:15px}
+.main{max-width:680px;margin:0 auto;padding:18px 16px calc(96px + env(safe-area-inset-bottom))}
+@media(min-width:1024px){.main{max-width:1020px;padding:28px 32px 80px}}
+.phead{margin-bottom:18px}.ptitle h1{font:800 22px/1.25 var(--num)}.ptitle p{color:var(--ink2);font-size:14px;margin-top:4px}
+.fchips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;scrollbar-width:none}
+.fchips::-webkit-scrollbar{display:none}
+.fchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 15px;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.fchip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.trow{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line2)}.trow:last-child{border:none}
+.tinfo{flex:1;min-width:0}
+.tinfo .t1{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tinfo .t2{font-size:12px;color:var(--ink3);font-weight:500;margin-top:1px}
+.tright{text-align:right;flex:none}.tamt{font:700 14.5px var(--num);font-variant-numeric:tabular-nums}
+.tamt.pos{color:var(--green-d)}.tamt.neg{color:var(--ink)}
+.st{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;margin-top:3px}
+.st-completed{background:var(--mint);color:var(--green-d)}
+.st-pending{background:var(--amber-s);color:var(--amber)}
+/* Canceled — red, same pill style */
+.st-canceled{background:var(--red-s);color:var(--red)}
+.empty{padding:44px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.eico{width:60px;height:60px;border-radius:50%;background:var(--mint);color:var(--green-d);display:grid;place-items:center;margin-bottom:8px}.eico svg{width:26px;height:26px}
+.empty h3{font-size:16.5px;font-weight:800}.empty p{color:var(--ink2);font-size:14px;max-width:320px}
+.empty .btn{margin-top:14px}
+.sk{background:#E7EEE9;border-radius:10px;position:relative;overflow:hidden}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shim 1.4s infinite}
+@keyframes shim{to{transform:translateX(100%)}}
+.sheet-back{position:fixed;inset:0;background:rgba(16,26,20,.55);z-index:150;display:flex;align-items:flex-end;justify-content:center;animation:fade .25s;backdrop-filter:blur(3px)}
+@keyframes fade{from{opacity:0}}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:26px 22px calc(26px + env(safe-area-inset-bottom));animation:mup .35s cubic-bezier(.2,.9,.3,1);text-align:center}
+@keyframes mup{from{transform:translateY(60px);opacity:0}}
+.sheet .grip{width:44px;height:5px;border-radius:99px;background:var(--line2);margin:0 auto 18px}
+.sheet .slogo{width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;margin:0 auto 14px;overflow:hidden;flex:none}
+.sheet .slogo img{width:100%;height:100%;object-fit:cover;display:block}
+.sheet .slogo svg{width:26px;height:26px}
+.sheet h2{font:800 20px var(--num);margin-bottom:6px}
+.sheet p{color:var(--ink2);font-size:13.5px;font-weight:500;margin-bottom:20px}
+.sheet .acts{display:flex;gap:10px}
+.sheet .acts .btn{flex:1;height:48px}
+.sheet small{display:block;margin-top:14px;color:var(--ink3);font-size:12px;font-weight:600}
+#toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:min(92vw,390px);pointer-events:none}
+.toast{pointer-events:auto;display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-md);animation:tin .3s;cursor:pointer}
+@keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+.toast .ti{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none}.toast .ti svg{width:15px;height:15px}
+.toast.t-success .ti{background:var(--mint);color:var(--green-d)}.toast.t-error .ti{background:var(--red-s);color:var(--red)}
+.toast.t-info .ti{background:var(--blue-s);color:var(--blue)}
+.toast b{display:block;font-size:13.5px}.toast span{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px}
+/* ===== FIX: remove Android/WebView tap highlight + tap focus ring ONLY ===== */
+*{-webkit-tap-highlight-color:transparent !important}
+a,button,[role="button"],[onclick],.bnav a,.bnav .bi,.ico-btn,.slink,.btn,.card,.toast,.dover,.fchip{-webkit-tap-highlight-color:transparent !important}
+a:focus:not(:focus-visible),button:focus:not(:focus-visible),.bnav a:focus:not(:focus-visible),.bnav .bi:focus:not(:focus-visible),.ico-btn:focus:not(:focus-visible),.slink:focus:not(:focus-visible),.btn:focus:not(:focus-visible),.toast:focus:not(:focus-visible),.fchip:focus:not(:focus-visible){outline:none !important}
+/* fallback for very old Android WebView without :focus-visible (touch devices only) */
+@media (hover:none) and (pointer:coarse){a:focus,button:focus,.bnav a:focus,.bnav .bi:focus,.ico-btn:focus,.slink:focus,.btn:focus,.toast:focus,.fchip:focus{outline:none !important}}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div id="app"></div>
+<script>
+/* ============ SYNC PHASE ============ */
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return [].slice.call((r||document).querySelectorAll(s))}
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function round2(v){return Math.round(v*100)/100}
+function initials(n){return (n||'').trim().split(/\s+/).map(function(w){return w[0]}).slice(0,2).join('').toUpperCase()}
+var FLAG='earnly_logged_in';
+
+/* ================== SITE LOGO (auto-invalidating cache) ================== */
+var LOGO_URL='https://i.ibb.co.com/7J62W1Vy/super-resolution-20260902102855933.png';
+var LOGO_KEY='earnly_site_logo_v2';
+var LOGO_LEGACY_KEYS=['earnly_watch_ad_logo_v1'];
+function logoGet(){
+try{
+var raw=localStorage.getItem(LOGO_KEY);
+if(!raw)return '';
+var o=JSON.parse(raw);
+if(!o||o.url!==LOGO_URL||!o.data)return '';
+return o.data}catch(e){return ''}}
+function logoSrc(){return logoGet()||LOGO_URL}
+function updateLogoImg(){
+var l=logoGet();if(!l)return;
+var im=$('#brandLogo')||$('#sheetLogo');
+if(im)im.src=l}
+function cacheLogo(){
+try{LOGO_LEGACY_KEYS.forEach(function(k){localStorage.removeItem(k)})}catch(e){}
+if(logoGet())return;
+var save=function(d){try{localStorage.setItem(LOGO_KEY,JSON.stringify({url:LOGO_URL,data:d}))}catch(e){}};
+var viaCanvas=function(img){
+try{
+var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+if(!w||!h)return;
+var scale=Math.min(1,512/Math.max(w,h));
+var c=document.createElement('canvas');
+c.width=Math.max(1,Math.round(w*scale));
+c.height=Math.max(1,Math.round(h*scale));
+var cx=c.getContext('2d');
+cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+cx.drawImage(img,0,0,c.width,c.height);
+save(c.toDataURL('image/png'));
+updateLogoImg()}catch(e){}};
+fetch(LOGO_URL,{mode:'cors'}).then(function(r){
+if(!r.ok)throw new Error('http '+r.status);return r.blob()}).then(function(b){
+return new Promise(function(res,rej){
+var fr=new FileReader();fr.onload=function(){res(fr.result)};fr.onerror=rej;fr.readAsDataURL(b)})}).then(function(dataUrl){
+if(dataUrl&&dataUrl.length<1200000){save(dataUrl);updateLogoImg();return}
+var probe=new Image();
+probe.onload=function(){viaCanvas(probe)};
+probe.src=dataUrl}).catch(function(){
+var img=new Image();img.crossOrigin='anonymous';
+img.onload=function(){viaCanvas(img)};
+img.src=LOGO_URL})}
+
+var NAV=[
+{g:'Overview',items:[['index','house','Dashboard'],['earn','zap','Earn Hub']]},
+{g:'Earning',items:[['watch','play','Watch & Earn'],['scratch','gift','Scratch Card'],['tasks','target','Daily Tasks'],['checkin','calendar-check','Daily Check-In'],['spin','disc-3','Spin & Earn'],['offers','puzzle','Offers'],['refer','users','Refer & Earn']]},
+{g:'Account',items:[['wallet','wallet','Wallet'],['withdraw','banknote','Withdraw'],['history','history','Transactions'],['notifications','bell','Notifications'],['profile','user','Profile']]}];
+var TXN_META={video:['play','blue'],scratch:['gift','green'],task:['target','green'],referral:['users','blue'],checkin:['calendar-check','green'],offer:['briefcase','blue'],withdraw:['banknote','ink'],refund:['refresh-cw','amber'],bonus:['sparkles','amber'],spin:['disc-3','green']};
+var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDT(t){var d=new Date(t),h=d.getHours(),a=h>=12?'PM':'AM';h=h%12||12;return d.getDate()+' '+MONS[d.getMonth()]+', '+h+':'+String(d.getMinutes()).padStart(2,'0')+' '+a}
+function sk(w,h,r){return '<span class="sk" style="display:block;width:'+w+'px;height:'+h+'px'+(r?';border-radius:'+r+'px':'')+'"></span>'}
+function mountShell(route){
+var bnavHtml=[['index','house','Home'],['earn','zap','Earn'],['wallet','wallet','Wallet'],['history','history','History'],['profile','user','Profile']].map(function(it){
+return '<a href="'+it[0]+'.html" data-route="'+it[0]+'"><span class="bi">'+ic(it[1])+'</span>'+it[2]+'</a>'}).join('');
+ $('#app').innerHTML=
+'<header class="dhdr"><a class="brand" href="index.html"><span class="mark"><img id="brandLogo" src="'+logoSrc()+'" alt="Adward"></span>Adward</a><div class="grow"></div>'
++'<button class="ico-btn" id="hBell">'+ic('bell')+'</button>'
++'<button class="ico-btn" id="burger">'+ic('menu')+'</button></header>'
++'<div class="netban" id="netban">'+ic('cloud-off')+" You're offline — rewards will sync once you reconnect</div>"
++'<div class="dover" id="dover"></div><aside class="drawer" id="drawer"></aside>'
++'<main class="main" id="view"></main>'
++'<nav class="bnav">'+bnavHtml+'</nav>';
+icons();
+ $('#hBell').onclick=function(){location.href='notifications.html'};
+var dr=$('#drawer'),ov=$('#dover');
+ $('#burger').onclick=function(){fillDrawer();dr.classList.add('open');ov.classList.add('open');document.body.style.overflow='hidden'};
+ov.onclick=closeDr;
+ $$('.bnav a[data-route]').forEach(function(a){a.classList.toggle('on',a.dataset.route===route)});
+var up=function(){var b=$('#netban');if(b)b.style.display=navigator.onLine?'none':'flex'};
+addEventListener('offline',function(){up()});addEventListener('online',function(){up()});up()}
+function closeDr(){var dr=$('#drawer'),ov=$('#dover');
+dr.classList.remove('open');ov.classList.remove('open');document.body.style.overflow=''}
+function loadCache(){try{return JSON.parse(localStorage.getItem('earnly_dash_cache_v1'))||null}catch(e){}return null}
+var navType=(performance.getEntriesByType('navigation')[0]||{}).type||'navigate';
+var snapKey='earnly_snap_history_'+(localStorage.getItem('earnly_uid')||'anon');
+if(navType==='reload'){sessionStorage.removeItem(snapKey);sessionStorage.removeItem('sc_history')}
+var ME=(function(){var c=loadCache();return c?c.me:null})();
+function drawerHtml(){
+return '<div class="dprof"><span class="avatar" style="width:42px;height:42px;font-size:14px">'+initials(ME.name)+'</span>'
++'<div><b>'+ME.name+'</b><span>'+(ME.balance?money(ME.balance.available):'')+'</span></div></div>'
++NAV.map(function(g){return '<div class="sgroup">'+g.g+'</div>'+g.items.map(function(it){
+return '<a class="slink" data-route="'+it[0]+'" href="'+it[0]+'.html">'+ic(it[1])+it[2]+'</a>'}).join('')}).join('')
++'<div class="dfoot"><button class="slink" id="drOut" style="color:var(--red)">'+ic('log-out')+'Log out</button></div>'}
+function fillDrawer(){
+var dr=$('#drawer');
+if(!dr||dr.dataset.filled==='1'||!ME)return;
+dr.dataset.filled='1';dr.innerHTML=drawerHtml();icons();
+ /* logout → wipe auth + cached state → clean public boot (cache-buster) */
+ $('#drOut').onclick=function(){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem('earnly_dash_cache_v1');localStorage.removeItem('earnly_earn_cache_v1');
+sessionStorage.clear()}catch(e){}
+firebase.auth().signOut().then(function(){location.replace('index.html?out='+Date.now())})};
+ $$('a',dr).forEach(function(a){a.addEventListener('click',closeDr)})}
+function skelMain(){
+var i,s='';
+s+='<div style="margin-bottom:18px">'+sk(180,22,8)+'<div style="height:8px"></div>'+sk(240,13,6)+'</div>';
+s+='<div class="fchips">';
+for(i=0;i<6;i++){s+='<span class="sk" style="display:inline-block;width:80px;height:32px;border-radius:999px"></span>'}
+s+='</div><div class="card" style="padding:2px 0">';
+for(i=0;i<6;i++){s+='<div class="trow">'+sk(40,40,12)
++'<div class="tinfo">'+sk(130,13,6)+'<div style="height:7px"></div>'+sk(90,10,5)+'</div>'
++sk(58,14,6)+'</div>'}
+s+='</div>';
+return s}
+mountShell('history');
+/* LOGGED-OUT LOAD — never restore a stale logged-in snapshot */
+if(!localStorage.getItem(FLAG)||!localStorage.getItem('earnly_uid')){
+try{Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('earnly_snap_')===0)sessionStorage.removeItem(k)})}catch(e){}
+ $('#view').innerHTML=skelMain();icons()}
+else{
+var _snap=sessionStorage.getItem(snapKey);
+if(_snap){$('#view').innerHTML=_snap;icons()}
+else{$('#view').innerHTML=skelMain();icons()}}
+cacheLogo();
+/* ===== LOGIN SHEET ===== */
+function showLoginSheet(){
+if($('#loginSheet'))return;
+var b=document.createElement('div');b.id='loginSheet';b.className='sheet-back';
+b.innerHTML='<div class="sheet"><div class="grip"></div>'
++'<span class="slogo"><img id="sheetLogo" src="'+logoSrc()+'" alt="Adward"></span>'
++'<h2>Sign in to view history</h2>'
++'<p>Your complete transaction record — rewards, withdrawals, refunds — each with a reference ID.</p>'
++'<div class="acts">'
++'<a class="btn btn-ghost" href="login.html">'+ic('log-in')+' Sign in</a>'
++'<a class="btn btn-primary" href="register.html">'+ic('user-plus')+' Create account</a>'
++'</div><small>Every transaction is recorded with an auditable reference</small></div>';
+document.body.appendChild(b);icons()}
+function hideLoginSheet(){var b=$('#loginSheet');if(b)b.remove()}
+/* ============ ASYNC PHASE ============ */
+var firebaseConfig={apiKey:"AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",authDomain:"earning-app-6d638.firebaseapp.com",projectId:"earning-app-6d638",storageBucket:"earning-app-6d638.firebasestorage.app",messagingSenderId:"813497830586",appId:"1:813497830586:web:8f728409eaaccd08c34683"};
+firebase.initializeApp(firebaseConfig);
+var auth=firebase.auth(),fs=firebase.firestore();
+/* back-button / bfcache guard */
+addEventListener('pageshow',function(e){
+if(e.persisted&&(!localStorage.getItem(FLAG)||!localStorage.getItem('earnly_uid')))location.reload()});
+var UID=null,LOGGED_IN=false,ALL=null;
+var PAGE=8,shown=0;
+var FILTERS=[['all','All'],['earnings','Earnings'],['withdrawals','Withdrawals'],['pending','Pending'],['completed','Completed'],['canceled','Canceled']];
+var filter='all';
+/* ===== STATUS HELPERS ===== */
+function isCanceledSt(s){s=String(s||'');return s==='canceled'||s==='cancelled'||s==='rejected'}
+function stBadge(st){
+st=String(st||'');
+if(st==='completed')return '<span class="st st-completed">Completed</span>';
+if(isCanceledSt(st))return '<span class="st st-canceled">Canceled</span>';
+return '<span class="st st-pending">Pending</span>'}
+function txnRow(t){
+var m=TXN_META[t.type]||TXN_META.bonus,neg=t.amount<0,canc=isCanceledSt(t.status);
+var refundLine=(t.type==='withdraw'&&canc)
+?'<div class="t2" style="color:'+(t.refundPaid===true?'var(--green-d)':'var(--amber)')+';font-weight:700">'
++(t.refundPaid===true?money(Math.abs(Number(t.amount)||0))+' returned to your balance':'Refund processing…')+'</div>':'';
+return '<div class="trow"><div class="tint tint-'+m[1]+'">'+ic(m[0])+'</div>'
++'<div class="tinfo"><div class="t1">'+t.title+'</div><div class="t2">'+fmtDT(t.at)+' · '+t.id+'</div>'+refundLine+'</div>'
++'<div class="tright"><div class="tamt '+(neg?'neg':'pos')+'">'+(neg?'−':'+')+money(Math.abs(t.amount))+'</div>'
++stBadge(t.status)+'</div></div>'}
+function filtered(){
+var list=(ALL||[]).slice();
+if(filter==='earnings')list=list.filter(function(t){return t.amount>0&&t.type!=='withdraw'&&t.type!=='refund'});
+else if(filter==='withdrawals')list=list.filter(function(t){return t.type==='withdraw'||t.type==='refund'});
+else if(filter==='pending')list=list.filter(function(t){return t.status==='pending'});
+else if(filter==='completed')list=list.filter(function(t){return t.status==='completed'});
+else if(filter==='canceled')list=list.filter(function(t){return isCanceledSt(t.status)});
+return list}
+function renderList(reset){
+if(reset)shown=0;
+var list=filtered(),box=$('#hList');
+if(!box)return;
+if(!list.length){box.innerHTML='<div class="empty card"><div class="eico">'+ic('history')+'</div><h3>Nothing here yet</h3><p>Try a different filter, or start earning to see activity.</p><a class="btn btn-primary btn-sm" href="earn.html">Start earning</a></div>';icons();return}
+shown=reset?Math.min(PAGE,list.length):Math.min(shown+PAGE,list.length);
+var hasMore=shown<list.length;
+box.innerHTML='<div class="card" style="padding:2px 0">'+list.slice(0,shown).map(txnRow).join('')+'</div>'
++(hasMore?'<div style="text-align:center;margin-top:14px"><button class="btn btn-ghost btn-sm" id="more">'+ic('chevron-down')+' Load more</button></div>':'');
+icons();
+var m=$('#more');if(m)m.addEventListener('click',function(){renderList(false)});
+try{sessionStorage.setItem(snapK(),$('#view').innerHTML)}catch(e){}}
+function snapK(){return 'earnly_snap_history_'+UID}
+function renderShell(){
+ $('#view').innerHTML='<div class="phead ptitle"><h1>Transaction History</h1><p>Every credit and withdrawal, with full references.</p></div>'
++'<div class="fchips" id="hf">'+FILTERS.map(function(f){
+return '<button class="fchip '+(f[0]===filter?'on':'')+'" data-f="'+f[0]+'">'+f[1]+'</button>'}).join('')+'</div>'
++'<div id="hList"></div>';
+icons();
+ $$('#hf .fchip').forEach(function(b){b.addEventListener('click',function(){
+filter=b.dataset.f;
+ $$('#hf .fchip').forEach(function(x){x.classList.toggle('on',x===b)});
+renderList(true)})});
+renderList(true)}
+/* ===== REFUND ENGINE — atomic, one-time ===== */
+var refunding={};
+function processRefund(t){
+if(!UID||refunding[t.id])return;
+refunding[t.id]=1;
+var wRef=fs.collection('users').doc(UID).collection('txns').doc(t.id);
+var rRef=fs.collection('users').doc(UID).collection('txns').doc('refund_'+t.id);
+var uRef=fs.collection('users').doc(UID);
+fs.runTransaction(function(tr){
+return tr.get(wRef).then(function(ws){
+if(!ws.exists)return null;
+var w=ws.data();
+if(!isCanceledSt(w.status))return null;
+if(w.refundPaid===true)return null;
+var amt=round2(Math.abs(Number(w.amount)||0));
+if(!(amt>0))return null;
+return tr.get(uRef).then(function(us){
+var p=(us.exists&&us.data())||{};
+if(!p.balance)p.balance={available:0,pending:0,earned:0,withdrawn:0};
+p.balance.available=round2((Number(p.balance.available)||0)+amt);
+p.balance.withdrawn=Math.max(0,round2((Number(p.balance.withdrawn)||0)-amt));
+tr.update(wRef,{refundPaid:true,refundedAt:Date.now()});
+tr.set(rRef,{id:'refund_'+t.id,at:Date.now(),status:'completed',type:'refund',
+title:'Refund · Withdrawal canceled',amount:amt,
+note:'Withdrawal '+t.id+' was canceled — '+money(amt)+' returned to your balance'});
+tr.set(uRef.collection('notifs').doc(),{at:Date.now(),read:false,kind:'money',icon:'refresh-cw',
+title:'Withdrawal canceled',
+body:'Your '+money(amt)+' withdrawal was canceled. '+money(amt)+' has been returned to your available balance.'});
+tr.update(uRef,{balance:p.balance});
+return amt})})})
+.then(function(amt){
+delete refunding[t.id];
+if(amt>0){
+toast(money(amt)+' refunded to your balance','info','A withdrawal was canceled — money returned');
+if(ME&&ME.balance){ME.balance.available=round2((Number(ME.balance.available)||0)+amt);
+ME.balance.withdrawn=Math.max(0,round2((Number(ME.balance.withdrawn)||0)-amt));saveME()}}})
+.catch(function(e){console.warn('refund failed',e);delete refunding[t.id]})}
+function saveME(){try{var old=JSON.parse(localStorage.getItem('earnly_dash_cache_v1')||'{}');old.uid=UID;old.me=ME;localStorage.setItem('earnly_dash_cache_v1',JSON.stringify(old))}catch(e){}}
+var sawUser=false,handled=false;
+auth.onAuthStateChanged(function(u){
+if(!u){
+if(sawUser){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem('earnly_dash_cache_v1');localStorage.removeItem('earnly_earn_cache_v1');
+sessionStorage.clear()}catch(e){}
+location.replace('index.html?out='+Date.now());return}
+showLoginSheet();return}
+if(handled)return;handled=true;sawUser=true;
+hideLoginSheet();
+UID=u.uid;localStorage.setItem('earnly_uid',UID);localStorage.setItem(FLAG,'1');
+snapKey='earnly_snap_history_'+UID;
+if(!_snap){renderShell()}
+fs.collection('users').doc(UID).collection('txns').orderBy('at','desc').limit(100).onSnapshot(function(q){
+ALL=[];q.forEach(function(d){ALL.push(d.data())});
+if(ALL.length===0)ALL=null;
+renderShell();
+(ALL||[]).forEach(function(t){
+if(t.type==='withdraw'&&isCanceledSt(t.status)&&t.refundPaid!==true)processRefund(t)})},
+function(){
+if(!ALL)$('#view').innerHTML='<div class="card" style="padding:24px;text-align:center"><b>Could not load history</b><p style="color:var(--ink2);font-size:13.5px;margin-top:6px">Check your connection and reload.</p></div>'})});
+</script>
+</body>
+</html>

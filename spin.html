@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Spin &amp; Earn — Adward</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%230D63F2"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F6F8F7;--line:#E6ECE8;--line2:#EEF2F0;--ink:#101A14;--ink2:#57645C;--ink3:#94A29A;--mint:#E9F7EE;--mint2:#D9F0E2;--mint3:#C4E8D2;--green:#16A15C;--green-d:#0B7B44;--blue:#0D63F2;--blue-d:#0A52CC;--blue-s:#EBF2FE;--amber:#B25E09;--amber-s:#FDF1DF;--red:#D92D20;--red-s:#FCEBEB;--sh-sm:0 1px 2px rgba(16,24,40,.05);--sh-md:0 8px 24px rgba(16,24,40,.08);--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif;--brand:'Space Grotesk','Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}button{font-family:var(--font)}
+.grow{flex:1}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14.5px;border:1px solid transparent;border-radius:12px;height:46px;padding:0 20px;cursor:pointer;transition:.18s;background:none;color:var(--ink)}
+.btn svg{width:17px;height:17px}.btn:active{transform:scale(.975)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-ghost{background:#fff;border-color:var(--line)}
+.btn-sm{height:37px;padding:0 15px;font-size:13.5px;border-radius:10px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#F2F6F3;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.chip svg{width:12px;height:12px}.chip-mint{background:var(--mint);color:var(--green-d)}
+.tint{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}.tint svg{width:19px;height:19px}
+.tint-green{background:var(--mint);color:var(--green-d)}.tint-amber{background:var(--amber-s);color:var(--amber)}.tint-ink{background:#F2F6F3;color:var(--ink2)}
+.ico-btn{width:40px;height:40px;border-radius:12px;border:none;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--ink)}.ico-btn:hover{background:var(--line2)}.ico-btn svg{width:21px;height:21px}
+.badge-dot{position:absolute;top:3px;right:3px;min-width:16px;height:16px;background:var(--red);color:#fff;border-radius:999px;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px;border:2px solid #fff}
+.avatar{border-radius:50%;background:var(--mint);border:1px solid var(--mint3);color:var(--green-d);display:grid;place-items:center;font:800 13px var(--num);flex:none}
+.dhdr{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line2);height:60px;display:flex;align-items:center;gap:8px;padding:0 16px}
+/* Site name in Space Grotesk — same brand style as the dashboard */
+.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font:800 17px var(--brand)}
+/* Mark 37×37, image fills it; header height stays exactly 60px */
+.brand .mark{width:37px;height:37px;border-radius:11px;background:var(--blue);color:#fff;display:grid;place-items:center;overflow:hidden;flex:none}
+.brand .mark img{width:100%;height:100%;object-fit:cover;display:block}
+.dover{position:fixed;inset:0;background:rgba(16,26,20,.42);opacity:0;visibility:hidden;transition:.22s;z-index:90}.dover.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(216px,56vw);background:#fff;z-index:95;transform:translateX(105%);transition:transform .3s cubic-bezier(.2,.8,.3,1);display:flex;flex-direction:column;border-left:1px solid var(--line2);padding:16px 10px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}.drawer.open{transform:none}
+.dprof{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid var(--line2);margin-bottom:6px}.dprof b{display:block;font-size:14px}.dprof span{font:700 12px var(--num);color:var(--green-d)}
+.sgroup{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--ink3);text-transform:uppercase;padding:12px 10px 6px}
+.slink{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;color:var(--ink2);font-size:13.5px;font-weight:600;border:none;background:none;width:100%;text-align:left;cursor:pointer;text-decoration:none}.slink svg{width:17px;height:17px;flex:none}.slink:hover{background:#F4F8F5;color:var(--ink)}.slink.on{background:var(--blue-s);color:var(--blue)}
+.dfoot{margin-top:auto;border-top:1px solid var(--line2);padding-top:10px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line2);display:flex;padding:5px 6px calc(5px + env(safe-area-inset-bottom))}
+.bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 3px;color:var(--ink3);font-size:10.5px;font-weight:700;text-decoration:none}
+.bnav .bi{display:flex;padding:5px 16px;border-radius:999px;transition:background .18s}
+.bnav svg{width:20px;height:20px}.bnav a.on{color:var(--blue)}.bnav a.on .bi{background:var(--blue-s)}
+.netban{position:sticky;top:60px;z-index:39;background:var(--amber-s);color:var(--amber);font-size:13px;font-weight:700;display:none;align-items:center;justify-content:center;gap:8px;padding:8px 14px}.netban svg{width:15px;height:15px}
+.main{max-width:680px;margin:0 auto;padding:18px 16px calc(96px + env(safe-area-inset-bottom))}
+@media(min-width:1024px){.main{max-width:1020px;padding:28px 32px 80px}}
+.phead{margin-bottom:18px}.ptitle h1{font:800 22px/1.25 var(--num)}.ptitle p{color:var(--ink2);font-size:14px;margin-top:4px}
+.sec{margin-top:26px}.sech{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.sech h2{font-size:16px;font-weight:800}
+.hint{font-size:12.5px;color:var(--ink3);margin-top:6px}
+.note{display:flex;gap:11px;padding:13px 15px;background:var(--blue-s);border:1px solid #D6E6FF;border-radius:14px;font-size:13px;color:var(--ink2);font-weight:500;margin-top:16px}
+.note svg{width:17px;height:17px;color:var(--blue);flex:none;margin-top:1px}
+.wheel-wrap{position:relative;width:min(310px,82vw);margin:14px auto 0}
+.wptr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border:13px solid transparent;border-top:20px solid var(--blue);z-index:5;filter:drop-shadow(0 2px 3px rgba(13,99,242,.35))}
+#wheel{display:block;width:100%;height:auto}
+.whub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;background:var(--blue);color:#fff;border:5px solid #fff;font:800 13px var(--num);letter-spacing:1px;cursor:pointer;box-shadow:0 4px 16px rgba(13,99,242,.4);z-index:4;transition:transform .15s}
+.whub:active{transform:translate(-50%,-50%) scale(.94)}
+.whub[disabled]{opacity:.65;cursor:default}
+.trow{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line2)}.trow:last-child{border:none}
+.tinfo{flex:1;min-width:0}
+.tinfo .t1{font-size:14px;font-weight:700}.tinfo .t2{font-size:12px;color:var(--ink3);font-weight:500;margin-top:1px}
+.tright{text-align:right;flex:none}.tamt{font:700 14.5px var(--num);font-variant-numeric:tabular-nums;color:var(--green-d)}
+.empty{padding:44px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.eico{width:60px;height:60px;border-radius:50%;background:var(--mint);color:var(--green-d);display:grid;place-items:center;margin-bottom:8px}.eico svg{width:26px;height:26px}
+.empty h3{font-size:16.5px;font-weight:800}.empty p{color:var(--ink2);font-size:14px;max-width:320px}
+.empty .btn{margin-top:14px}
+.sk{background:#E7EEE9;border-radius:10px;position:relative;overflow:hidden}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shim 1.4s infinite}
+@keyframes shim{to{transform:translateX(100%)}}
+.sheet-back{position:fixed;inset:0;background:rgba(16,26,20,.55);z-index:150;display:flex;align-items:flex-end;justify-content:center;animation:fade .25s;backdrop-filter:blur(3px)}
+@keyframes fade{from{opacity:0}}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:26px 22px calc(26px + env(safe-area-inset-bottom));animation:mup .35s;text-align:center}
+@keyframes mup{from{transform:translateY(60px);opacity:0}}
+.sheet .grip{width:44px;height:5px;border-radius:99px;background:var(--line2);margin:0 auto 18px}
+.sheet .slogo{width:54px;height:54px;border-radius:16px;background:var(--blue);color:#fff;display:grid;place-items:center;margin:0 auto 14px;overflow:hidden;flex:none}
+.sheet .slogo img{width:100%;height:100%;object-fit:cover;display:block}
+.sheet .slogo svg{width:26px;height:26px}
+.sheet h2{font:800 20px var(--num);margin-bottom:6px}
+.sheet p{color:var(--ink2);font-size:13.5px;font-weight:500;margin-bottom:20px}
+.sheet .acts{display:flex;gap:10px}
+.sheet .acts .btn{flex:1;height:48px}
+#toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:min(92vw,390px);pointer-events:none}
+.toast{pointer-events:auto;display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-md);animation:tin .3s;cursor:pointer}
+@keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+.toast .ti{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none}.toast .ti svg{width:15px;height:15px}
+.toast.t-success .ti{background:var(--mint);color:var(--green-d)}.toast.t-error .ti{background:var(--red-s);color:var(--red)}
+.toast.t-info .ti{background:var(--blue-s);color:var(--blue)}
+.toast b{display:block;font-size:13.5px}.toast span{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px}
+.mback{position:fixed;inset:0;background:rgba(16,26,20,.48);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.mbox{background:#fff;width:100%;max-width:460px;border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;animation:mup .3s}
+@media(min-width:640px){.mback{align-items:center;padding:20px}.mbox{border-radius:22px;animation:mp .22s}@keyframes mp{from{transform:scale(.94);opacity:0}}}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.mhead h3{font-size:17px;font-weight:800;font-family:var(--num)}
+.macts{display:flex;gap:10px;margin-top:18px}.macts .btn{flex:1}
+@keyframes sp{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+/* ===== FIX: remove Android/WebView tap highlight + tap focus ring ONLY ===== */
+*{-webkit-tap-highlight-color:transparent !important}
+a,button,[role="button"],[onclick],.bnav a,.bnav .bi,.ico-btn,.slink,.btn,.card,.toast,.dover{-webkit-tap-highlight-color:transparent !important}
+a:focus:not(:focus-visible),button:focus:not(:focus-visible),.bnav a:focus:not(:focus-visible),.bnav .bi:focus:not(:focus-visible),.ico-btn:focus:not(:focus-visible),.slink:focus:not(:focus-visible),.btn:focus:not(:focus-visible),.toast:focus:not(:focus-visible),.whub:focus:not(:focus-visible){outline:none !important}
+/* fallback for very old Android WebView without :focus-visible (touch devices only) */
+@media (hover:none) and (pointer:coarse){a:focus,button:focus,.bnav a:focus,.bnav .bi:focus,.ico-btn:focus,.slink:focus,.btn:focus,.toast:focus,.whub:focus{outline:none !important}}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div id="app"></div>
+<script>
+/* ============ SYNC PHASE ============ */
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return [].slice.call((r||document).querySelectorAll(s))}
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function money0(n){return '৳'+Number(n||0).toLocaleString('en-US')}
+function round2(v){return Math.round(v*100)/100}
+function rid(n){var s='',c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';while(n--)s+=c[Math.random()*31|0];return s}
+function initials(n){return (n||'').trim().split(/\s+/).map(function(w){return w[0]}).slice(0,2).join('').toUpperCase()}
+function ymd(t){var d=t?new Date(t):new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function freshDaily(day){return{day:day,videos:{},scratched:0,spins:0,tasksClaimed:[],scratchLog:[],spinLog:[],activeCard:null,loginDone:false,todayEarned:0}}
+function normDaily(d){var k=ymd();return(!d||d.day!==k||d.videos===undefined)?freshDaily(k):d}
+var FLAG='earnly_logged_in';
+var CK='earnly_earn_cache_v1';
+var SPIN={daily:3,seg:[['1','৳1'],['0','৳0'],['2','৳2'],['A','Again'],['5','৳5'],['0','৳0'],['B','BONUS'],['1','৳1']],weights:[['0',16],['1',30],['2',21],['5',6],['B',10],['A',17]],bonus:3};
+var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDT(t){var d=new Date(t),h=d.getHours(),a=h>=12?'PM':'AM';h=h%12||12;return d.getDate()+' '+MONS[d.getMonth()]+', '+h+':'+String(d.getMinutes()).padStart(2,'0')+' '+a}
+var NAV=[
+{g:'Overview',items:[['index','house','Dashboard'],['earn','zap','Earn Hub']]},
+{g:'Earning',items:[['watch','play','Watch & Earn'],['scratch','gift','Scratch Card'],['tasks','target','Daily Tasks'],['checkin','calendar-check','Daily Check-In'],['spin','disc-3','Spin & Earn'],['offers','puzzle','Offers'],['refer','users','Refer & Earn']]},
+{g:'Account',items:[['wallet','wallet','Wallet'],['withdraw','banknote','Withdraw'],['history','history','Transactions'],['notifications','bell','Notifications'],['profile','user','Profile']]}];
+
+/* ================== SITE LOGO (auto-invalidating cache) ==================
+   Same shared cache as dashboard/refer/withdraw/history/watch/tasks
+   (earnly_site_logo_v2) — one download serves every page. */
+var LOGO_URL='https://i.ibb.co.com/7J62W1Vy/super-resolution-20260902102855933.png';
+var LOGO_KEY='earnly_site_logo_v2';
+var LOGO_LEGACY_KEYS=['earnly_watch_ad_logo_v1'];
+function logoGet(){
+try{
+var raw=localStorage.getItem(LOGO_KEY);
+if(!raw)return '';
+var o=JSON.parse(raw);
+if(!o||o.url!==LOGO_URL||!o.data)return '';
+return o.data}catch(e){return ''}}
+function logoSrc(){return logoGet()||LOGO_URL}
+function updateLogoImg(){
+var l=logoGet();if(!l)return;
+var im=$('#brandLogo')||$('#sheetLogo');
+if(im)im.src=l}
+function cacheLogo(){
+try{LOGO_LEGACY_KEYS.forEach(function(k){localStorage.removeItem(k)})}catch(e){}
+if(logoGet())return;
+var save=function(d){try{localStorage.setItem(LOGO_KEY,JSON.stringify({url:LOGO_URL,data:d}))}catch(e){}};
+var viaCanvas=function(img){
+try{
+var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+if(!w||!h)return;
+var scale=Math.min(1,512/Math.max(w,h));
+var c=document.createElement('canvas');
+c.width=Math.max(1,Math.round(w*scale));
+c.height=Math.max(1,Math.round(h*scale));
+var cx=c.getContext('2d');
+cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+cx.drawImage(img,0,0,c.width,c.height);
+save(c.toDataURL('image/png'));
+updateLogoImg()}catch(e){}};
+fetch(LOGO_URL,{mode:'cors'}).then(function(r){
+if(!r.ok)throw new Error('http '+r.status);return r.blob()}).then(function(b){
+return new Promise(function(res,rej){
+var fr=new FileReader();fr.onload=function(){res(fr.result)};fr.onerror=rej;fr.readAsDataURL(b)})}).then(function(dataUrl){
+if(dataUrl&&dataUrl.length<1200000){save(dataUrl);updateLogoImg();return}
+var probe=new Image();
+probe.onload=function(){viaCanvas(probe)};
+probe.src=dataUrl}).catch(function(){
+var img=new Image();img.crossOrigin='anonymous';
+img.onload=function(){viaCanvas(img)};
+img.src=LOGO_URL})}
+
+function sk(w,h,r){return '<span class="sk" style="display:block;width:'+w+'px;height:'+h+'px'+(r?';border-radius:'+r+'px':'')+'"></span>'}
+function mountShell(route){
+var bnavHtml=[['index','house','Home'],['earn','zap','Earn'],['wallet','wallet','Wallet'],['history','history','History'],['profile','user','Profile']].map(function(it){
+return '<a href="'+it[0]+'.html" data-route="'+it[0]+'"><span class="bi">'+ic(it[1])+'</span>'+it[2]+'</a>'}).join('');
+ $('#app').innerHTML=
+'<header class="dhdr"><a class="brand" href="index.html"><span class="mark"><img id="brandLogo" src="'+logoSrc()+'" alt="Adward"></span>Adward</a><div class="grow"></div>'
++'<button class="ico-btn" id="hBell">'+ic('bell')+'</button>'
++'<button class="ico-btn" id="burger">'+ic('menu')+'</button></header>'
++'<div class="netban" id="netban">'+ic('cloud-off')+" You're offline — rewards will sync once you reconnect</div>"
++'<div class="dover" id="dover"></div><aside class="drawer" id="drawer"></aside>'
++'<main class="main" id="view"></main>'
++'<nav class="bnav">'+bnavHtml+'</nav>';
+icons();
+ $('#hBell').onclick=function(){location.href='notifications.html'};
+var dr=$('#drawer'),ov=$('#dover');
+ $('#burger').onclick=function(){fillDrawer();dr.classList.add('open');ov.classList.add('open');document.body.style.overflow='hidden'};
+ov.onclick=closeDr;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDr()});
+ $$('.bnav a[data-route]').forEach(function(a){a.classList.toggle('on',a.dataset.route===route)});
+var up=function(){var b=$('#netban');if(b)b.style.display=navigator.onLine?'none':'flex'};
+addEventListener('offline',function(){up()});addEventListener('online',function(){up()});up()}
+function closeDr(){var dr=$('#drawer'),ov=$('#dover');
+dr.classList.remove('open');ov.classList.remove('open');document.body.style.overflow=''}
+function loadCache(){try{return JSON.parse(localStorage.getItem(CK))||null}catch(e){}return null}
+var navType=(performance.getEntriesByType('navigation')[0]||{}).type||'navigate';
+var snapKey='earnly_snap_spin_'+(localStorage.getItem('earnly_uid')||'anon');
+if(navType==='reload'){sessionStorage.removeItem(snapKey);sessionStorage.removeItem('sc_spin')}
+var ME=(function(){var c=loadCache();return c?c.me:null})();
+function drawerHtml(){
+return '<div class="dprof"><span class="avatar" style="width:42px;height:42px;font-size:14px">'+initials(ME.name)+'</span>'
++'<div><b>'+ME.name+'</b><span>'+(ME.balance?money(ME.balance.available):'')+'</span></div></div>'
++NAV.map(function(g){return '<div class="sgroup">'+g.g+'</div>'+g.items.map(function(it){
+return '<a class="slink" data-route="'+it[0]+'" href="'+it[0]+'.html">'+ic(it[1])+it[2]+'</a>'}).join('')}).join('')
++'<div class="dfoot"><button class="slink" id="drOut" style="color:var(--red)">'+ic('log-out')+'Log out</button></div>'}
+function fillDrawer(){
+var dr=$('#drawer');
+if(!dr||dr.dataset.filled==='1'||!ME)return;
+dr.dataset.filled='1';dr.innerHTML=drawerHtml();icons();
+ /* logout → wipe auth + cached state → clean public boot (cache-buster) */
+ $('#drOut').onclick=function(){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem(CK);localStorage.removeItem('earnly_dash_cache_v1');
+sessionStorage.clear()}catch(e){}
+firebase.auth().signOut().then(function(){location.replace('index.html?out='+Date.now())})};
+ $$('a',dr).forEach(function(a){a.addEventListener('click',closeDr)})}
+function skelMain(){
+var s='';
+s+='<div style="margin-bottom:18px">'+sk(120,22,8)+'<div style="height:8px"></div>'+sk(260,13,6)+'</div>';
+s+='<div class="card" style="padding:22px 16px 26px"><div style="display:flex;justify-content:center">'+sk(200,26,999)+'</div>';
+s+='<div class="sk" style="width:min(310px,82vw);aspect-ratio:1;border-radius:50%;margin:20px auto 0"></div>';
+s+='<div style="text-align:center;margin-top:16px">'+sk(280,12,5)+'</div></div>';
+s+='<section class="sec">'+sk(110,14,6)+'<div style="height:12px"></div><div class="card" style="padding:2px 0">';
+for(var i=0;i<2;i++){s+='<div class="trow">'+sk(40,40,12)+'<div class="tinfo">'+sk(80,13,5)+'<div style="height:7px"></div>'+sk(110,10,4)+'</div>'+sk(60,14,6)+'</div>'}
+s+='</div></section>';
+return s}
+mountShell('spin');
+/* LOGGED-OUT LOAD — never restore a stale logged-in snapshot */
+if(!localStorage.getItem(FLAG)||!localStorage.getItem('earnly_uid')){
+try{Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('earnly_snap_')===0)sessionStorage.removeItem(k)})}catch(e){}
+ $('#view').innerHTML=skelMain();icons()}
+else{
+var _snap=sessionStorage.getItem(snapKey);
+if(_snap){$('#view').innerHTML=_snap;icons()}
+else{$('#view').innerHTML=skelMain();icons()}}
+cacheLogo();
+/* ===== LOGIN SHEET ===== */
+function showLoginSheet(){
+if($('#loginSheet'))return;
+var b=document.createElement('div');b.id='loginSheet';b.className='sheet-back';
+b.innerHTML='<div class="sheet"><div class="grip"></div>'
++'<span class="slogo"><img id="sheetLogo" src="'+logoSrc()+'" alt="Adward"></span>'
++'<h2>Sign in to spin &amp; earn</h2>'
++'<p>'+SPIN.daily+' free spins every day — win ৳1 to ৳5 or a ৳'+SPIN.bonus+' bonus. \u201cTry Again\u201d refunds your spin.</p>'
++'<div class="acts">'
++'<a class="btn btn-ghost" href="login.html">'+ic('log-in')+' Sign in</a>'
++'<a class="btn btn-primary" href="register.html">'+ic('user-plus')+' Create account</a>'
++'</div><small>The winning segment is picked by the server before the wheel spins</small></div>';
+document.body.appendChild(b);icons()}
+function hideLoginSheet(){var b=$('#loginSheet');if(b)b.remove()}
+/* ============ ASYNC PHASE ============ */
+var firebaseConfig={apiKey:"AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",authDomain:"earning-app-6d638.firebaseapp.com",projectId:"earning-app-6d638",storageBucket:"earning-app-6d638.firebasestorage.app",messagingSenderId:"813497830586",appId:"1:813497830586:web:8f728409eaaccd08c34683"};
+firebase.initializeApp(firebaseConfig);
+var auth=firebase.auth(),fs=firebase.firestore();
+/* back-button / bfcache guard — signed-out restore gets a fresh load */
+addEventListener('pageshow',function(e){
+if(e.persisted&&(!localStorage.getItem(FLAG)||!localStorage.getItem('earnly_uid')))location.reload()});
+function toast(t,type,sub){type=type||'success';var el=document.createElement('div');el.className='toast t-'+type;
+el.innerHTML='<span class="ti">'+ic({success:'circle-check',error:'circle-x',info:'info',warn:'triangle-alert'}[type])+'</span><div><b>'+t+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</div>';
+ $('#toasts').appendChild(el);icons();
+var k=function(){el.classList.add('out');setTimeout(function(){el.remove()},240)};el.onclick=k;setTimeout(k,3400)}
+function burst(x,y){var cols=['#16A15C','#0D63F2','#C4E8D2','#EFA83C'];
+for(var i=0;i<14;i++){var s=document.createElement('span'),a=Math.random()*Math.PI*2,d=40+Math.random()*70;
+s.style.cssText='position:fixed;width:9px;height:9px;border-radius:50%;pointer-events:none;z-index:250;left:'+x+'px;top:'+y+'px;background:'+cols[i%4]+';--dx:'+(Math.cos(a)*d)+'px;--dy:'+(Math.sin(a)*d-30)+'px;animation:sp .8s cubic-bezier(.15,.8,.4,1) forwards';
+document.body.appendChild(s);(function(el){setTimeout(function(){el.remove()},850)})(s)}}
+function saveME(){try{var old=JSON.parse(localStorage.getItem(CK)||'{}');old.uid=UID;old.me=ME;localStorage.setItem(CK,JSON.stringify(old))}catch(e){}}
+var UID=null,LOGGED_IN=false,st=null,rot=0,busy=false;
+var view=$('#view');
+function uRef(){return fs.collection('users').doc(UID)}
+function snapK(){return 'earnly_snap_spin_'+UID}
+function rollWeighted(w){var tot=0;w.forEach(function(x){tot+=x[1]});var r=Math.random()*tot;
+for(var i=0;i<w.length;i++){r-=w[i][1];if(r<0)return w[i][0]}return w[0][0]}
+/* SERVER: spin — READ FIRST, then all writes. Result decided server-side, before animation.
+   Already credits BOTH balance.available AND balance.earned — spin
+   earnings count toward the referral ৳100 threshold. Unchanged. */
+function spinDo(){
+return fs.runTransaction(function(t){
+/* 1. READ */
+return t.get(uRef()).then(function(snap){
+var p=snap.data(),d=normDaily(p.daily);
+if(d.spins>=SPIN.daily)throw{message:'No spins left today — come back tomorrow'};
+/* 2. CALCULATE (server decides result BEFORE animation) */
+var type=rollWeighted(SPIN.weights),idxs=[];
+SPIN.seg.forEach(function(s,i){if(s[0]===type)idxs.push(i)});
+var index=idxs[Math.floor(Math.random()*idxs.length)],L=SPIN.seg[index][0];
+d.spinLog=(d.spinLog||[]);
+var reward=0,label='Try Again',refunded=false;
+if(L==='A'){
+d.spinLog.unshift({label:'Try again',at:Date.now()});
+refunded=true;
+}else{
+reward=L==='B'?SPIN.bonus:parseFloat(L);
+label=L==='B'?money(reward)+' Bonus':money(reward);
+d.spins++;
+d.spinLog.unshift({label:label,at:Date.now()});
+if(reward>0){
+p.balance=p.balance||{available:0,pending:0,earned:0,withdrawn:0};
+p.balance.available=round2(p.balance.available+reward);
+p.balance.earned=round2(p.balance.earned+reward);
+d.todayEarned=round2((d.todayEarned||0)+reward)}}
+/* 3. WRITES LAST */
+var writes=function(){
+t.update(uRef(),{balance:p.balance,daily:d});
+if(!refunded&&reward>0){
+var tid='TXN-'+rid(8);
+t.set(uRef().collection('txns').doc(tid),{id:tid,at:Date.now(),status:'completed',type:'spin',title:'Spin reward',amount:reward});
+t.set(uRef().collection('notifs').doc(),{at:Date.now(),read:false,kind:'reward',icon:'disc-3',title:'Spin reward',body:'You won '+label+' on the prize wheel — added to your balance.'})}};
+writes();
+ME=p;ME.daily=d;saveME();
+return{index:index,reward:reward,label:label,refunded:refunded,remaining:SPIN.daily-d.spins}})})}
+function wheelSVG(){var cx=150,cy=150,r=138,h='';
+SPIN.seg.forEach(function(s,i){
+var a0=(-90+i*45)*Math.PI/180,a1=(-90+(i+1)*45)*Math.PI/180;
+var p='M'+cx+' '+cy+' L'+(cx+r*Math.cos(a0)).toFixed(1)+' '+(cy+r*Math.sin(a0)).toFixed(1)
++' A'+r+' '+r+' 0 0 1 '+(cx+r*Math.cos(a1)).toFixed(1)+' '+(cy+r*Math.sin(a1)).toFixed(1)+' Z';
+var fill=i===6?'#0D63F2':(i===3||i===7)?'#E9F7EE':(i%2===0?'#fff':'#F2F6F3');
+var am=(-90+i*45+22.5)*Math.PI/180,lx=cx+Math.cos(am)*90,ly=cy+Math.sin(am)*90,tr=-90+i*45+22.5+90;
+if(((tr%360)+360)%360>90&&((tr%360)+360)%360<270)tr-=180;
+h+='<path d="'+p+'" fill="'+fill+'" stroke="#fff" stroke-width="2"/>'
++'<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" transform="rotate('+tr.toFixed(1)+' '+lx.toFixed(1)+' '+ly.toFixed(1)+')"'
++' text-anchor="middle" dominant-baseline="middle" font-family="Sora" font-weight="700" font-size="12.5"'
++' fill="'+(i===6?'#fff':'#101A14')+'">'+s[1]+'</text>'});
+return h}
+function renderLog(list){var el=$('#spLog');if(!el)return;
+el.innerHTML=list.length?'<div class="card" style="padding:2px 0">'+list.map(function(l,i){
+return '<div class="trow"><div class="tint tint-green">'+ic('disc-3')+'</div>'
++'<div class="tinfo"><div class="t1">Spin '+(list.length-i)+'</div><div class="t2">'+fmtDT(l.at)+'</div></div>'
++'<div class="tright"><div class="tamt">'+l.label+'</div></div></div>'}).join('')+'</div>'
+:'<div class="empty card"><div class="eico">'+ic('disc-3')+'</div><h3>No spins yet</h3><p>Tap SPIN to try your first wheel of the day.</p></div>';
+icons()}
+function render(){
+var isG=!LOGGED_IN||!ME;
+var d=isG?null:normDaily(ME.daily);
+var remaining=isG?SPIN.daily:SPIN.daily-(d.spins||0);
+var log=isG?[]:((d.spinLog)||[]).slice(0,8);
+st={remaining:remaining,log:log};
+var sy=window.scrollY;
+view.innerHTML='<div class="phead ptitle"><h1>Spin &amp; Earn</h1><p>One free result per spin — outcomes are generated and validated on our servers.</p></div>'
++'<div class="card" style="padding:22px 16px 26px">'
++'<div style="display:flex;justify-content:center;gap:8px"><span class="chip'+(remaining?' chip-mint':'')+'" id="spChip">'+ic('disc-3')
++' '+(isG?SPIN.daily+' free spins every day':remaining+' of '+SPIN.daily+' spins left today')+'</span></div>'
++'<div class="wheel-wrap"><div class="wptr"></div>'
++'<svg id="wheel" viewBox="0 0 300 300"><circle cx="150" cy="150" r="146" fill="none" stroke="var(--line)" stroke-width="4"/>'+wheelSVG()
++'<circle cx="150" cy="150" r="47" fill="#fff" stroke="var(--line)" stroke-width="2"/></svg>'
++'<button class="whub" id="hub"'+(!isG&&!remaining?' disabled':'')+'>SPIN</button></div>'
++'<p class="hint" style="text-align:center;margin-top:14px">Segments: ৳0 · ৳1 · ৳2 · ৳5 · ৳'+SPIN.bonus+' Bonus · Try Again (refund)</p></div>'
++'<section class="sec"><div class="sech"><h2>'+(isG?'How it works':'Today\u2019s spins')+'</h2></div><div id="spLog"></div></section>'
++'<div class="note">'+ic('shield')+'<span>The winning segment is picked by the server before the wheel starts spinning — the animation only replays the result.</span></div>';
+icons();
+if(isG){$('#spLog').innerHTML='<div class="card" style="padding:16px">'
++'<div style="display:flex;flex-direction:column;gap:9px;font-size:13.5px;font-weight:600;color:var(--ink)">'
++'<div style="display:flex;gap:10px;align-items:center">'+ic('disc-3')+' '+SPIN.daily+' free spins daily — no cost, ever</div>'
++'<div style="display:flex;gap:10px;align-items:center">'+ic('coins')+' Win ৳1 – ৳5, or a ৳'+SPIN.bonus+' bonus segment</div>'
++'<div style="display:flex;gap:10px;align-items:center">'+ic('rotate-ccw')+' \u201cTry Again\u201d refunds your spin — you never lose an attempt</div>'
++'</div></div>';icons();
+ $('#hub').addEventListener('click',function(){if(!LOGGED_IN)showLoginSheet()});return}
+renderLog(st.log);
+ $('#hub').addEventListener('click',spin);
+try{sessionStorage.setItem(snapK(),view.innerHTML)}catch(e){}}
+function spin(){
+if(busy)return;busy=true;
+var btn=$('#hub');btn.disabled=true;btn.textContent='…';
+spinDo()
+.then(function(r){
+/* animation replays the server-decided result */
+var target=r.index*45+22.5,jit=Math.random()*26-13,cur=((rot%360)+360)%360;
+rot+=360*5+(((((-target-jit)-cur)%360)+360)%360);
+var w=$('#wheel');
+w.style.transition='transform 4.4s cubic-bezier(.15,.72,.12,1)';
+w.style.transform='rotate('+rot+'deg)';
+w.addEventListener('transitionend',function(){
+st.remaining=r.remaining;st.log=(ME.daily.spinLog||[]).slice(0,8);
+btn.textContent=st.remaining?'SPIN':'DONE';btn.disabled=st.remaining<1;
+var chip=$('#spChip');if(chip){chip.className='chip'+(st.remaining?' chip-mint':'');
+chip.innerHTML=ic('disc-3')+' '+st.remaining+' of '+SPIN.daily+' spins left today';icons()}
+renderLog(st.log);
+var rc=btn.getBoundingClientRect();
+if(r.refunded)toast('Try again — spin refunded','info','You keep the attempt');
+else if(r.reward>0){burst(rc.left+rc.width/2,rc.top);toast('You won '+r.label,'success','Credited to your balance')}
+else toast('No reward this time','info','Better luck on your next spin');
+try{sessionStorage.removeItem(snapK())}catch(e2){}
+busy=false},{once:true})})
+.catch(function(e){
+toast(e.message||'Spin failed','error');
+btn.disabled=false;btn.textContent='SPIN';busy=false})}
+var sawUser=false,handled=false;
+auth.onAuthStateChanged(function(u){
+if(!u){
+if(sawUser){
+try{localStorage.removeItem(FLAG);localStorage.removeItem('earnly_uid');
+localStorage.removeItem(CK);localStorage.removeItem('earnly_dash_cache_v1');
+sessionStorage.clear()}catch(e){}
+location.replace('index.html?out='+Date.now());return}
+showLoginSheet();return}
+if(handled)return;handled=true;sawUser=true;
+LOGGED_IN=true;
+hideLoginSheet();
+UID=u.uid;localStorage.setItem('earnly_uid',UID);localStorage.setItem(FLAG,'1');
+if(!ME){var c=loadCache();if(c&&c.me)ME=c.me}
+if(!ME){location.replace('index.html');return}
+uRef().get().then(function(snap){
+if(snap.exists){ME=snap.data();saveME()}
+render()}).catch(function(){render()})});
+</script>
+</body>
+</html>

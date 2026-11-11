@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Admin — Earnly</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%23B25E09"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F6F7F9;--line:#E4E7EC;--ink:#1A1D23;--ink2:#5A6270;--ink3:#9AA1AC;--blue:#0D63F2;--blue-s:#EBF2FE;--green-d:#0B7B44;--green-s:#E7F6EF;--amber:#B25E09;--amber-s:#FDF1DF;--red:#D92D20;--red-s:#FCEBEB;--sh-sm:0 1px 2px rgba(20,24,32,.06);--sh-md:0 8px 24px rgba(20,24,32,.10);--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}button{font-family:var(--font)}
+.grow{flex:1}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:13.5px;border:1px solid transparent;border-radius:10px;height:42px;padding:0 18px;cursor:pointer;transition:.18s;background:none;color:var(--ink)}
+.btn svg{width:16px;height:16px}.btn:active{transform:scale(.975)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{filter:brightness(.92)}
+.btn-ghost{background:#fff;border-color:var(--line)}.btn-ghost:hover{border-color:var(--ink3)}
+.btn-sm{height:34px;padding:0 13px;font-size:12.5px;border-radius:9px}
+.field{margin-bottom:13px}.field>label{display:block;font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:6px}
+.input{width:100%;height:42px;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font:600 13.5px var(--font);background:#fff;color:var(--ink)}
+.input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-s)}
+textarea.input{height:auto;padding:10px 12px;min-height:70px;font-weight:500;resize:vertical}
+.hint{font-size:11.5px;color:var(--ink3);margin-top:5px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#EFF1F4;border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:700;color:var(--ink2)}
+.chip-green{background:var(--green-s);color:var(--green-d)}.chip-amber{background:var(--amber-s);color:var(--amber)}.chip-red{background:var(--red-s);color:var(--red)}.chip-blue{background:var(--blue-s);color:var(--blue)}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);height:56px;display:flex;align-items:center;gap:10px;padding:0 18px}
+.brand{display:flex;align-items:center;gap:9px;font:800 16px var(--num)}
+.brand .mark{width:30px;height:30px;border-radius:9px;background:var(--amber);color:#fff;display:grid;place-items:center}
+.brand .mark svg{width:16px;height:16px}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin:14px 0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap;transition:.15s}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 60px}
+h2{font:800 17px var(--num);margin-bottom:4px}
+.desc{color:var(--ink2);font-size:12.5px;margin-bottom:16px;font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat small{font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;display:block}
+.stat b{font:700 20px var(--num);font-variant-numeric:tabular-nums;display:block;margin-top:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{text-align:left;padding:9px 12px;background:#F4F6F8;font-weight:800;color:var(--ink2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl tr:hover td{background:#FAFBFC}
+.vid-card{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;background:#fff}
+.vid-head{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.vid-head .tint{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--blue-s);color:var(--blue)}
+.vid-head b{flex:1;font-size:13.5px;min-width:100px}
+.adurl{font-size:11.5px;color:var(--ink3);word-break:break-all}
+.seg-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.seg{display:flex;align-items:center;gap:5px;background:#F4F6F8;border-radius:999px;padding:4px 6px 4px 12px;font-size:11.5px;font-weight:700;color:var(--ink2)}
+.seg button{width:18px;height:18px;border-radius:50%;border:none;background:var(--red-s);color:var(--red);cursor:pointer;font-size:11px;line-height:1;display:grid;place-items:center}
+.seg button:hover{background:var(--red);color:#fff}
+.off-card{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;background:#fff}
+.off-head{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.off-logo{width:34px;height:34px;border-radius:9px;color:#fff;display:grid;place-items:center;font:800 14px var(--num);flex:none}
+.off-head b{flex:1;font-size:13.5px;min-width:100px}
+#toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:min(92vw,390px);pointer-events:none}
+.toast{pointer-events:auto;display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-md);animation:tin .3s;cursor:pointer}
+@keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+.toast .ti{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none}.toast .ti svg{width:15px;height:15px}
+.toast.t-success .ti{background:var(--green-s);color:var(--green-d)}.toast.t-error .ti{background:var(--red-s);color:var(--red)}
+.toast.t-info .ti{background:var(--blue-s);color:var(--blue)}
+.toast b{display:block;font-size:13px}.toast span{display:block;font-size:12px;color:var(--ink2);margin-top:1px}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(127,127,127,.3);border-top-color:currentColor;animation:rot .7s linear infinite;display:inline-block}
+@keyframes rot{to{transform:rotate(360deg)}}
+.search{position:relative;margin-bottom:14px}
+.search .input{padding-left:34px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink3)}
+.mback{position:fixed;inset:0;background:rgba(20,24,32,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.mbox{background:#fff;width:100%;max-width:460px;border-radius:18px;padding:22px;max-height:86vh;overflow:auto;animation:mp .22s}
+@keyframes mp{from{transform:scale(.94);opacity:0}}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.mhead h3{font-size:16px;font-weight:800;font-family:var(--num)}
+.ico-btn{width:34px;height:34px;border-radius:9px;border:none;background:var(--bg);display:grid;place-items:center;color:var(--ink);cursor:pointer}
+.macts{display:flex;gap:10px;margin-top:16px}.macts .btn{flex:1}
+#errBanner{position:fixed;left:12px;right:12px;bottom:12px;z-index:999;background:var(--red-s);border:1.5px solid var(--red);color:var(--red);border-radius:12px;padding:12px 14px;font:600 12.5px var(--font);display:none;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div id="errBanner"></div>
+<div id="app"></div>
+<script>
+/* error surface FIRST — nothing can fail silently */
+function errBanner(msg){var b=document.getElementById('errBanner');
+if(b){b.style.display='block';b.textContent=msg}}
+window.addEventListener('error',function(e){errBanner('Script error: '+(e.message||e.type)+' (line '+e.lineno+')')});
+window.addEventListener('unhandledrejection',function(e){errBanner('Request failed: '+((e.reason&&e.reason.message)||e.reason))});
+</script>
+<script>
+/* ================= admin.html — no auth, panel opens instantly ================= */
+var firebaseConfig={apiKey:"AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",authDomain:"earning-app-6d638.firebaseapp.com",projectId:"earning-app-6d638",storageBucket:"earning-app-6d638.firebasestorage.app",messagingSenderId:"813497830586",appId:"1:813497830586:web:8f728409eaaccd08c34683"};
+firebase.initializeApp(firebaseConfig);
+var fs=firebase.firestore();
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function money0(n){return '৳'+Number(n||0).toLocaleString('en-US')}
+function round2(v){return Math.round(v*100)/100}
+function rid(n){var s='',c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';while(n--)s+=c[Math.random()*31|0];return s}
+function fmtDT(t){var d=new Date(t),h=d.getHours(),a=h>=12?'PM':'AM';h=h%12||12;return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+', '+h+':'+String(d.getMinutes()).padStart(2,'0')+' '+a}
+function toast(t,type,sub){type=type||'success';var el=document.createElement('div');el.className='toast t-'+type;
+el.innerHTML='<span class="ti">'+ic({success:'circle-check',error:'circle-x',info:'info'}[type])+'</span><div><b>'+t+'</b>'+(sub?'<span>'+sub+'</span>':'')+'</div>';
+ $('#toasts').appendChild(el);icons();
+var k=function(){el.style.opacity=0;setTimeout(function(){el.remove()},250)};el.onclick=k;setTimeout(k,3400)}
+function openModal(o){var b=document.createElement('div');b.className='mback';
+b.innerHTML='<div class="mbox"><div class="mhead"><h3>'+o.title+'</h3><button class="ico-btn" data-close>'+ic('x')+'</button></div>'+o.body+'</div>';
+document.body.appendChild(b);icons();var c=function(){b.remove()};
+b.addEventListener('click',function(e){if(e.target===b)c()});b.querySelector('[data-close]').onclick=c;return{close:c,root:b}}
+function btnLoad(b,on){if(on){b.dataset.h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spin"></span> Saving…'}
+else if(b.dataset.h){b.innerHTML=b.dataset.h;b.disabled=false;icons()}}
+
+/* ---------- config state (defaults; remote config overlays) ---------- */
+var CFG={
+ ref:{bonus:50,friend:20},
+ checkinRewards:[1,1,2,2,3,5,10],
+ scratch:{daily:3,weights:[['0.50',30],['1',26],['2',20],['5',11],['10',4],['0',9]]},
+ spin:{daily:3,seg:[['1','৳1'],['0','৳0'],['2','৳2'],['A','Again'],['5','৳5'],['0','৳0'],['B','BONUS'],['1','৳1']],weights:[['0',16],['1',30],['2',21],['5',6],['B',10],['A',17]],bonus:3},
+ videos:[],
+ offers:[
+  {id:'of1',cat:'Surveys',provider:'Survey Pulse',lc:'#0D63F2',title:'Consumer Habits Survey',desc:'Answer 18 quick questions about your everyday shopping habits.',reward:25,diff:'Easy',time:'8–10 min',req:['Must be 18 or older','One completion per user','Answers are quality-checked by the partner']},
+  {id:'of2',cat:'Apps',provider:'AppNest',lc:'#0E9F6E',title:'Install FitnessFlow',desc:'Install the FitnessFlow app and open it once.',reward:40,diff:'Easy',time:'~5 min',req:['Install from the provided store link','Open the app for at least 60 seconds','New FitnessFlow users only']},
+  {id:'of3',cat:'Games',provider:'PlayArcade',lc:'#E8590C',title:'Reach Level 10 in Coin Rush',desc:'A casual puzzle game — reach level 10 to complete the campaign.',reward:120,diff:'Hard',time:'2–3 days',req:['Install Coin Rush via the campaign link','Reach level 10 on the same account','Progress is verified by the partner']},
+  {id:'of4',cat:'Surveys',provider:'Opinion Board',lc:'#5B5BD6',title:'Streaming Preferences',desc:'Share how you discover shows and stream music.',reward:18,diff:'Easy',time:'~6 min',req:['Bangladesh residents only','One completion per 30 days']},
+  {id:'of5',cat:'Campaigns',provider:'PayWave',lc:'#0E7490',title:'PayWave First Top-up',desc:'Sign up and complete one mobile top-up.',reward:150,diff:'Medium',time:'~1 day',req:['Sign up with a verified phone number','Top up ৳50 or more once','Existing PayWave users are not eligible']},
+  {id:'of6',cat:'Apps',provider:'AppNest',lc:'#B25E09',title:'Try NewsDaily Premium',desc:'Install NewsDaily and activate the 3-day trial.',reward:55,diff:'Medium',time:'~1 day',req:['Trial must stay active until review','Cancel any time after approval']}],
+ methods:[
+  {id:'bkash',name:'bKash',kind:'mobile',icon:'smartphone',color:'#E2136E',min:200,max:25000,fee:{pct:1,min:5},eta:'Within 24 hours'},
+  {id:'nagad',name:'Nagad',kind:'mobile',icon:'smartphone',color:'#E8590C',min:200,max:25000,fee:{pct:1,min:5},eta:'Within 24 hours'},
+  {id:'rocket',name:'Rocket',kind:'mobile',icon:'smartphone',color:'#883BC4',min:200,max:25000,fee:{pct:1,min:5},eta:'Within 24 hours'},
+  {id:'bank',name:'Bank Transfer',kind:'bank',icon:'landmark',color:'#33415C',min:500,max:100000,fee:{flat:10},eta:'1–3 business days'}]};
+var TAB='overview';
+
+/* ---------- shell + tabs: built IMMEDIATELY, zero network dependency ---------- */
+function boot(){
+ $('#app').innerHTML=
+ '<header class="topbar"><span class="brand"><span class="mark">'+ic('shield')+'</span>Earnly Admin</span><div class="grow"></div>'
+ +'<span class="chip chip-amber">ADMIN</span>'
+ +'<button class="btn btn-ghost btn-sm" id="viewApp">'+ic('external-link')+' View app</button></header>'
+ +'<div class="wrap"><div class="tabs" id="tabs"></div><div id="panel"></div></div>';
+ icons();
+ $('#viewApp').onclick=function(){location.href='/'};
+ var tabs=[['overview','gauge','Overview'],['referral','users','Referral'],['checkin','calendar-check','Check-in'],['scratch','gift','Scratch'],['spin','disc-3','Spin'],['ads','megaphone','Ads'],['offers','puzzle','Offers'],['methods','landmark','Withdrawals'],['users','users-round','Users']];
+ $('#tabs').innerHTML=tabs.map(function(t){
+  return '<button class="tab'+(t[0]===TAB?' on':'')+'" data-tab="'+t[0]+'">'+t[2]+'</button>'}).join('');
+ $$('#tabs .tab').forEach(function(b){b.onclick=function(){TAB=b.dataset.tab;draw()}});
+ draw()}
+function draw(){
+ var p=$('#panel');
+ try{
+ if(TAB==='overview')drawOverview(p);
+ else if(TAB==='referral')drawRef(p);
+ else if(TAB==='checkin')drawCheckin(p);
+ else if(TAB==='scratch')drawScratch(p);
+ else if(TAB==='spin')drawSpin(p);
+ else if(TAB==='ads')drawAds(p);
+ else if(TAB==='offers')drawOffers(p);
+ else if(TAB==='methods')drawMethods(p);
+ else if(TAB==='users')drawUsers(p);
+ }catch(e){errBanner('Tab render failed: '+(e.message||e))}}
+
+function saveConfig(){
+ return fs.collection('config').doc('app').set(CFG)}
+function saveCfg(btn,msg){
+ btnLoad(btn,true);
+ return saveConfig().then(function(){btnLoad(btn,false);toast(msg||'Configuration saved','success','Users get it on their next visit')})
+ .catch(function(e){btnLoad(btn,false);toast('Save failed: '+(e.message||'error'),'error')})}
+
+/* ---------- overview ---------- */
+function drawOverview(p){
+ var maxReward=CFG.videos.length?Math.max.apply(null,CFG.videos.map(function(v){return v.reward})):0;
+ var totalDaily=CFG.videos.reduce(function(s,v){return s+v.daily},0);
+ p.innerHTML='<h2>Overview</h2><p class="desc">Live platform statistics and quick config summary.</p>'
+ +'<div class="statrow" id="stats"><div class="stat"><small>Loading stats…</small></div></div>'
+ +'<div class="card" style="padding:18px"><h2 style="font-size:14px;margin-bottom:10px">Current config</h2>'
+ +'<div class="grid2"><div class="stat"><small>Referral bonus</small><b>'+money(CFG.ref.bonus)+'</b></div>'
+ +'<div class="stat"><small>Friend bonus</small><b>'+money(CFG.ref.friend)+'</b></div>'
+ +'<div class="stat"><small>Check-in day 7</small><b>৳'+CFG.checkinRewards[6]+'</b></div>'
+ +'<div class="stat"><small>Daily cards</small><b>'+CFG.scratch.daily+'</b></div>'
+ +'<div class="stat"><small>Daily spins</small><b>'+CFG.spin.daily+'</b></div>'
+ +'<div class="stat"><small>Live ads</small><b>'+CFG.videos.length+'</b></div>'
+ +'<div class="stat"><small>Ad views/day</small><b>'+totalDaily+'</b></div>'
+ +'<div class="stat"><small>Max per ad</small><b>'+money0(maxReward)+'</b></div>'
+ +'<div class="stat"><small>Live offers</small><b>'+CFG.offers.length+'</b></div>'
+ +'<div class="stat"><small>Withdraw methods</small><b>'+CFG.methods.length+'</b></div></div></div>';
+ fs.collection('users').get().then(function(q){
+  var count=q.size,avail=0,earned=0,pend=0,wd=0;
+  q.forEach(function(d){var b=d.data().balance;if(b){avail+=b.available||0;earned+=b.earned||0;pend+=b.pending||0;wd+=b.withdrawn||0}});
+  var box=$('#stats');if(!box)return;
+  box.innerHTML=
+   '<div class="stat"><small>Total users</small><b>'+count+'</b></div>'
+  +'<div class="stat"><small>Available balance</small><b>'+money(avail)+'</b></div>'
+  +'<div class="stat"><small>Total earned</small><b>'+money(earned)+'</b></div>'
+  +'<div class="stat"><small>Pending</small><b>'+money(pend)+'</b></div>'
+  +'<div class="stat"><small>Withdrawn</small><b>'+money(wd)+'</b></div>';
+  icons()}).catch(function(e){
+  var box=$('#stats');if(box)box.innerHTML='<div class="stat"><small>Stats unavailable</small><b style="font-size:13px;color:var(--red)">'+((e&&e.message)||'error')+'</b></div>'})}
+
+/* ---------- referral ---------- */
+function drawRef(p){
+ p.innerHTML='<h2>Referral rewards</h2><p class="desc">Bonus amounts for referrals. The friend\u2019s pending bonus unlocks after their first check-in.</p>'
+ +'<div class="card" style="padding:18px">'
+ +'<div class="grid2"><div><div class="field"><label>Referrer bonus (৳) — you receive per friend</label><input class="input" id="rfB" type="number" min="0" step="1" value="'+CFG.ref.bonus+'"></div>'
+ +'<div class="field"><label>Friend bonus (৳) — friend receives on signup</label><input class="input" id="rfF" type="number" min="0" step="1" value="'+CFG.ref.friend+'"></div>'
+ +'<button class="btn btn-primary" id="rfSave">'+ic('save')+' Save referral config</button></div>'
+ +'<div><div class="stat"><small>How it works</small><p style="font-size:12.5px;color:var(--ink2);margin-top:6px">Friend signs up → gets <b>'+money(CFG.ref.friend)+'</b> pending.<br>Friend checks in → pending unlocks AND referrer gets <b>'+money(CFG.ref.bonus)+'</b>.</p></div></div></div></div>';
+ icons();
+ $('#rfSave').onclick=function(e){
+  var b=round2(parseFloat($('#rfB').value)||0),f=round2(parseFloat($('#rfF').value)||0);
+  if(b<0||f<0)return toast('Values must be 0 or greater','error');
+  CFG.ref={bonus:b,friend:f};saveCfg(e.currentTarget,'Referral rewards updated')}}
+
+/* ---------- check-in ---------- */
+function drawCheckin(p){
+ p.innerHTML='<h2>Daily check-in calendar</h2><p class="desc">Reward for each day of the 7-day streak cycle. Day 7 should be the biggest.</p>'
+ +'<div class="card" style="padding:18px">'
+ +'<div class="grid2" id="ciFields">'+CFG.checkinRewards.map(function(r,i){
+  return '<div class="field"><label>Day '+(i+1)+' reward (৳)</label><input class="input" data-ci="'+i+'" type="number" min="0" step="0.5" value="'+r+'"></div>'}).join('')+'</div>'
+ +'<div style="display:flex;gap:10px;flex-wrap:wrap">'
+ +'<button class="btn btn-primary" id="ciSave">'+ic('save')+' Save calendar</button>'
+ +'<button class="btn btn-ghost" id="ciReset">'+ic('rotate-ccw')+' Reset to default</button></div></div>';
+ icons();
+ var def=[1,1,2,2,3,5,10];
+ $('#ciReset').onclick=function(){
+  $$('[data-ci]').forEach(function(inp){inp.value=def[+inp.dataset.ci]});toast('Reset applied — remember to save','info')};
+ $('#ciSave').onclick=function(e){
+  var vals=[];var bad=false;
+  $$('[data-ci]').forEach(function(inp){var v=parseFloat(inp.value);if(isNaN(v)||v<0)bad=true;vals.push(isNaN(v)?0:v)});
+  if(bad)return toast('All days need a value of 0 or greater','error');
+  CFG.checkinRewards=vals;saveCfg(e.currentTarget,'Check-in calendar updated')}}
+
+/* ---------- scratch ---------- */
+function drawScratch(p){
+ p.innerHTML='<h2>Scratch cards</h2><p class="desc">Daily limit and reward probability weights. Higher weight = more common. Total weight is normalized automatically.</p>'
+ +'<div class="card" style="padding:18px;margin-bottom:12px">'
+ +'<div class="field" style="max-width:220px"><label>Cards per day per user</label><input class="input" id="scD" type="number" min="1" max="20" value="'+CFG.scratch.daily+'"></div>'
+ +'<h2 style="font-size:14px;margin:14px 0 10px">Reward weights</h2><div id="scWeights"></div>'
+ +'<button class="btn btn-primary" id="scSave">'+ic('save')+' Save scratch config</button></div>';
+ icons();
+ function drawWeights(){
+  $('#scWeights').innerHTML=CFG.scratch.weights.map(function(w,i){
+   return '<div class="seg-row"><div class="seg">৳'+w[0]+' — weight '+w[1]
+   +'<button data-del="'+i+'">✕</button></div>'
+   +'<input class="input" style="width:90px;height:32px" type="number" min="1" data-wi="'+i+'" value="'+w[1]+'"></div>'}).join('')
+  +'<button class="btn btn-ghost btn-sm" id="scAdd">'+ic('plus')+' Add reward amount</button>';
+  icons();
+  $$('[data-del]').forEach(function(b){b.onclick=function(){
+   CFG.scratch.weights.splice(+b.dataset.del,1);drawWeights()}});
+  $$('[data-wi]').forEach(function(inp){inp.onchange=function(){
+   var v=parseInt(inp.value);CFG.scratch.weights[+inp.dataset.wi][1]=(isNaN(v)||v<1)?1:v;
+   drawWeights()}})}
+ drawWeights();
+ $('#scAdd').onclick=function(){
+  var m=prompt('New reward amount (৳), e.g. 3 or 0.25:');
+  if(m===null)return;
+  var v=parseFloat(m);if(isNaN(v)||v<=0)return toast('Enter a valid amount','error');
+  CFG.scratch.weights.push([String(v),10]);drawWeights()};
+ $('#scSave').onclick=function(e){
+  var d=parseInt($('#scD').value);
+  if(isNaN(d)||d<1||d>20)return toast('Daily cards must be 1–20','error');
+  var tot=0;CFG.scratch.weights.forEach(function(w){tot+=w[1]});
+  if(tot<=0)return toast('Weights total must be above 0','error');
+  CFG.scratch.daily=d;
+  CFG.scratch.weights=CFG.scratch.weights.map(function(w){return [String(w[0]),w[1]]});
+  saveCfg(e.currentTarget,'Scratch config updated — '+tot+' total weight')}}
+
+/* ---------- spin ---------- */
+function drawSpin(p){
+ p.innerHTML='<h2>Spin &amp; Earn</h2><p class="desc">Daily limit, bonus amount and wheel segments (max 8). Zero-value \u201c0\u201d segments share the \u201c0\u201d weight; \u201cTry Again\u201d refunds the spin.</p>'
+ +'<div class="card" style="padding:18px;margin-bottom:12px">'
+ +'<div class="grid2">'
+ +'<div class="field"><label>Spins per day per user</label><input class="input" id="spD" type="number" min="1" max="20" value="'+CFG.spin.daily+'"></div>'
+ +'<div class="field"><label>Bonus segment value (৳)</label><input class="input" id="spB" type="number" min="1" step="1" value="'+CFG.spin.bonus+'"></div></div>'
+ +'<h2 style="font-size:14px;margin:14px 0 10px">Wheel segments</h2><div id="spSegs"></div>'
+ +'<h2 style="font-size:14px;margin:14px 0 10px">Outcome weights</h2><div id="spWeights"></div>'
+ +'<button class="btn btn-primary" id="spSave">'+ic('save')+' Save spin config</button></div>';
+ icons();
+ function relabelSegs(){
+  CFG.spin.seg=CFG.spin.seg.map(function(s){
+   var v=s[0];
+   var lab=v==='B'?money0(CFG.spin.bonus)+' BONUS':v==='A'?'Again':v==='0'?'৳0':money0(parseFloat(v));
+   return [v,lab]})}
+ function drawSegs(){
+  $('#spSegs').innerHTML='<div class="seg-row">'+CFG.spin.seg.map(function(s,i){
+   return '<div class="seg">'+s[1]+'<button data-sdel="'+i+'">✕</button></div>'}).join('')
+  +'<div class="seg-row"><select class="input" id="spNewV" style="width:140px;height:32px">'
+  +'<option value="0">৳0</option><option value="1">৳1</option><option value="2">৳2</option><option value="5">৳5</option>'
+  +'<option value="B">BONUS (৳'+CFG.spin.bonus+')</option><option value="A">Try Again</option></select>'
+  +'<button class="btn btn-ghost btn-sm" id="spAddSeg">'+ic('plus')+' Add</button></div></div>';
+  icons();
+  $$('[data-sdel]').forEach(function(b){b.onclick=function(){
+   if(CFG.spin.seg.length<=2)return toast('Wheel needs at least 2 segments','error');
+   CFG.spin.seg.splice(+b.dataset.sdel,1);drawSegs()}});
+  var add=$('#spAddSeg');if(add)add.onclick=function(){
+   if(CFG.spin.seg.length>=8)return toast('Maximum 8 segments','error');
+   CFG.spin.seg.push([$('#spNewV').value,'']);relabelSegs();drawSegs()}}
+ function drawWeights(){
+  $('#spWeights').innerHTML=CFG.spin.weights.map(function(w,i){
+   var lab=w[0]==='B'?'BONUS':w[0]==='A'?'Try Again':w[0]==='0'?'৳0 (no reward)':'৳'+w[0];
+   return '<div class="seg-row"><div class="seg">'+lab
+   +'<button data-wdel="'+i+'">✕</button></div>'
+   +'<input class="input" style="width:90px;height:32px" type="number" min="1" data-swi="'+i+'" value="'+w[1]+'"></div>'}).join('')
+  +'<div class="seg-row"><select class="input" id="spNewW" style="width:160px;height:32px">'
+  +'<option value="0">৳0 (no reward)</option><option value="1">৳1</option><option value="2">৳2</option><option value="5">৳5</option>'
+  +'<option value="B">BONUS</option><option value="A">Try Again</option></select>'
+  +'<button class="btn btn-ghost btn-sm" id="spAddW">'+ic('plus')+' Add weight</button></div></div>';
+  icons();
+  $$('[data-wdel]').forEach(function(b){b.onclick=function(){
+   CFG.spin.weights.splice(+b.dataset.wdel,1);drawWeights()}});
+  $$('[data-swi]').forEach(function(inp){inp.onchange=function(){
+   var v=parseInt(inp.value);CFG.spin.weights[+inp.dataset.swi][1]=(isNaN(v)||v<1)?1:v;
+   drawWeights()}});
+  var aw=$('#spAddW');if(aw)aw.onclick=function(){
+   CFG.spin.weights.push([$('#spNewW').value,10]);drawWeights()}}
+ drawSegs();drawWeights();
+ $('#spSave').onclick=function(e){
+  var d=parseInt($('#spD').value),bo=parseInt($('#spB').value);
+  if(isNaN(d)||d<1||d>20)return toast('Daily spins must be 1–20','error');
+  if(isNaN(bo)||bo<1)return toast('Bonus must be at least ৳1','error');
+  if(CFG.spin.seg.length<2)return toast('Wheel needs at least 2 segments','error');
+  CFG.spin.daily=d;CFG.spin.bonus=bo;
+  relabelSegs();
+  saveCfg(e.currentTarget,'Spin config updated')}}
+
+/* ---------- ads (direct links) ---------- */
+function drawAds(p){
+ var maxReward=CFG.videos.length?Math.max.apply(null,CFG.videos.map(function(v){return v.reward})):0;
+ var totalDaily=CFG.videos.reduce(function(s,v){return s+v.daily},0);
+ p.innerHTML='<h2>Ads (direct links)</h2><p class="desc">Adsterra / any direct ad URL. Users earn the reward after viewing for the duration, up to the daily limit per ad (999 = unlimited). Current total: '+totalDaily+' views/day, max '+money0(maxReward)+' each.</p>'
+ +'<button class="btn btn-primary" id="vAdd" style="margin-bottom:14px">'+ic('plus')+' Add new ad</button>'
+ +'<div id="vList">'+(CFG.videos.length?CFG.videos.map(function(v,i){return adCard(v,i)}).join(''):'<div class="card" style="padding:30px;text-align:center"><b>No ads yet</b><p style="color:var(--ink2);margin-top:4px">Add your first ad above.</p></div>')+'</div>';
+ icons();
+ function adCard(v,i){
+  return '<div class="vid-card" data-vi="'+i+'"><div class="vid-head">'
+  +'<span class="tint" style="background:'+(v.color||'#0D63F2')+'">'+ic(v.icon||'megaphone')+'</span><b>'+v.title+'</b>'
+  +'<button class="btn btn-ghost btn-sm" data-vedit="'+i+'">'+ic('pencil')+' Edit</button>'
+  +'<button class="btn btn-ghost btn-sm" data-vdel="'+i+'" style="color:var(--red)">'+ic('trash-2')+'</button></div>'
+  +'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px"><span class="chip chip-blue">'+ic('coins')+' Earn '+money(v.reward)+'</span>'
+  +'<span class="chip">'+ic('clock')+' '+v.duration+'s</span>'
+  +'<span class="chip">'+(v.daily>=999?'Unlimited':v.daily+'× daily')+'</span></div>'
+  +'<div class="adurl">'+(v.adUrl||'— no URL set —')+'</div></div>'}
+ var list=$('#vList');
+ list.addEventListener('click',function(e){
+  var ed=e.target.closest('[data-vedit]'),del=e.target.closest('[data-vdel]');
+  if(ed)editAd(+ed.dataset.vedit);
+  if(del){
+   if(!confirm('Delete this ad?'))return;
+   CFG.videos.splice(+del.dataset.vdel,1);
+   list.innerHTML=CFG.videos.length?CFG.videos.map(function(v,i){return adCard(v,i)}).join(''):'<div class="card" style="padding:30px;text-align:center"><b>No ads yet</b><p style="color:var(--ink2);margin-top:4px">Add your first ad above.</p></div>';
+   icons();
+   saveConfig().then(function(){toast('Ad removed','success')}).catch(function(){toast('Save failed','error')})}});
+ function editAd(i){
+  var v=CFG.videos[i];
+  var m=openModal({title:(i<0?'Add ad':'Edit ad'),body:
+   '<div class="field"><label>Ad name (shown to users)</label><input class="input" id="fvT" value="'+(v?v.title:'')+'"></div>'
+   +'<div class="field"><label>Ad URL (Adsterra direct link / any https:// destination)</label><input class="input" id="fvUrl" value="'+(v?v.adUrl||'':'')+'" placeholder="https://example.com/click">'
+   +'<div class="hint">Must be a direct https:// link.</div></div>'
+   +'<div class="grid2"><div><div class="field"><label>View duration (seconds)</label><input class="input" id="fvD" type="number" min="5" max="300" value="'+(v?v.duration:30)+'"></div></div>'
+   +'<div><div class="field"><label>Reward (৳)</label><input class="input" id="fvR" type="number" min="0" step="0.5" value="'+(v?v.reward:1)+'"></div></div></div>'
+   +'<div class="grid2"><div><div class="field"><label>Daily views per user (999 = unlimited)</label><input class="input" id="fvDL" type="number" min="1" max="999" value="'+(v?v.daily:3)+'"></div></div>'
+   +'<div><div class="field"><label>Accent color</label><input class="input" id="fvC" type="color" value="'+(v?v.color:'#0D63F2')+'"></div></div></div>'
+   +'<div class="field"><label>Icon (lucide)</label><input class="input" id="fvIco" value="'+(v?v.icon||'megaphone':'megaphone')+'"></div>'
+   +'<button class="btn btn-primary btn-block" id="fvSave">Save ad</button>'});
+  $('#fvSave',m.root).onclick=function(e){
+   btnLoad(e.target,true);
+   var url=$('#fvUrl',m.root).value.trim();
+   if(url&&url.indexOf('http://')!==0&&url.indexOf('https://')!==0){url='https://'+url}
+   if(url&&url.indexOf('https://')!==0){btnLoad(e.target,false);return toast('Ad URL must be https://','error')}
+   var nv={
+    id:v?v.id:'v'+rid(4).toLowerCase(),
+    title:$('#fvT',m.root).value.trim()||'Sponsored Ad',
+    adUrl:url||'',
+    duration:Math.max(5,parseInt($('#fvD',m.root).value)||30),
+    reward:Math.max(0,round2(parseFloat($('#fvR',m.root).value)||0)),
+    daily:Math.max(1,parseInt($('#fvDL',m.root).value)||3),
+    color:$('#fvC',m.root).value,
+    icon:$('#fvIco',m.root).value.trim()||'megaphone'};
+   if(i<0){CFG.videos.push(nv)}
+   else{CFG.videos[i]=nv}
+   saveConfig().then(function(){toast('Ad saved','success');draw()}).catch(function(er){
+    toast('Save failed: '+er.message,'error');btnLoad(e.target,false)})}}
+
+/* ---------- offers ---------- */
+function drawOffers(p){
+ var maxR=CFG.offers.length?Math.max.apply(null,CFG.offers.map(function(o){return o.reward})):0;
+ p.innerHTML='<h2>Partner offers</h2><p class="desc">Live campaigns. Users submit → 12s partner review (auto) → reward credits. Max shown: '+money0(maxR)+'.</p>'
+ +'<button class="btn btn-primary" id="oAdd" style="margin-bottom:14px">'+ic('plus')+' Add new offer</button>'
+ +'<div id="oList">'+CFG.offers.map(function(o,i){return offCard(o,i)}).join('')+'</div>';
+ icons();
+ function offCard(o,i){
+  return '<div class="off-card" data-oi="'+i+'"><div class="off-head">'
+  +'<span class="off-logo" style="background:'+o.lc+'">'+o.provider[0]+'</span><b>'+o.title+'</b>'
+  +'<button class="btn btn-ghost btn-sm" data-oedit="'+i+'">'+ic('pencil')+' Edit</button>'
+  +'<button class="btn btn-ghost btn-sm" data-odel="'+i+'" style="color:var(--red)">'+ic('trash-2')+'</button></div>'
+  +'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px"><span class="chip chip-blue">'+o.cat+'</span>'
+  +'<span class="chip chip-green">'+o.diff+'</span><span class="chip">'+ic('clock')+' '+o.time+'</span>'
+  +'<span class="chip chip-mint">Earn up to '+money0(o.reward)+'</span></div>'
+  +'<p style="font-size:12.5px;color:var(--ink2)">'+o.desc+'</p></div>'}
+ var list=$('#oList');
+ list.addEventListener('click',function(e){
+  var ed=e.target.closest('[data-oedit]'),del=e.target.closest('[data-odel]');
+  if(ed)editOffer(+ed.dataset.oedit);
+  if(del){
+   if(!confirm('Delete this offer?'))return;
+   CFG.offers.splice(+del.dataset.odel,1);
+   list.innerHTML=CFG.offers.map(function(o,i){return offCard(o,i)}).join('');icons();
+   saveConfig().then(function(){toast('Offer deleted','success')}).catch(function(){toast('Save failed','error')})}});
+ function editOffer(i){
+  var o=CFG.offers[i];
+  var m=openModal({title:(i<0?'Add offer':'Edit offer'),body:
+   '<div class="field"><label>Title</label><input class="input" id="foT" value="'+(o?o.title:'')+'"></div>'
+   +'<div class="grid2"><div><div class="field"><label>Provider</label><input class="input" id="foP" value="'+(o?o.provider:'')+'"></div></div>'
+   +'<div><div class="field"><label>Category</label><select class="input" id="foCat">'
+   +['Surveys','Apps','Games','Campaigns'].map(function(c){return '<option '+(o&&o.cat===c?'selected':'')+'>'+c+'</option>'}).join('')+'</select></div></div></div>'
+   +'<div class="grid2"><div><div class="field"><label>Estimated reward (৳)</label><input class="input" id="foR" type="number" min="0" step="1" value="'+(o?o.reward:25)+'"></div></div>'
+   +'<div><div class="field"><label>Difficulty</label><select class="input" id="foDiff">'
+   +['Easy','Medium','Hard'].map(function(d2){return '<option '+(o&&o.diff===d2?'selected':'')+'>'+d2+'</option>'}).join('')+'</select></div></div></div>'
+   +'<div class="field"><label>Time needed</label><input class="input" id="foTime" value="'+(o?o.time:'~1 day')+'"></div>'
+   +'<div class="field"><label>Description</label><textarea class="input" id="foDesc">'+(o?o.desc:'')+'</textarea></div>'
+   +'<div class="field"><label>Requirements (one per line)</label><textarea class="input" id="foReq">'+(o?o.req.join('\n'):'')+'</textarea></div>'
+   +'<div class="grid2"><div><div class="field"><label>Logo color</label><input class="input" id="foLc" type="color" value="'+(o?o.lc:'#0D63F2')+'"></div></div></div>'
+   +'<button class="btn btn-primary btn-block" id="foSave">Save offer</button>'});
+  $('#foSave',m.root).onclick=function(e){
+   btnLoad(e.target,true);
+   var req=$('#foReq',m.root).value.split('\n').map(function(x){return x.trim()}).filter(Boolean);
+   if(!req.length)req=['No special requirements'];
+   var no={
+    id:o?o.id:'of'+rid(4).toLowerCase(),
+    cat:$('#foCat',m.root).value,
+    provider:$('#foP',m.root).value.trim()||'Partner',
+    lc:$('#foLc',m.root).value,
+    title:$('#foT',m.root).value.trim()||'Untitled Offer',
+    desc:$('#foDesc',m.root).value.trim()||'',
+    reward:Math.max(0,round2(parseFloat($('#foR',m.root).value)||0)),
+    diff:$('#foDiff',m.root).value,
+    time:$('#foTime',m.root).value.trim()||'~1 day',
+    req:req};
+   if(i<0){CFG.offers.push(no)}
+   else{CFG.offers[i]=no}
+   saveConfig().then(function(){toast('Offer saved','success');draw()}).catch(function(er){
+    toast('Save failed: '+er.message,'error');btnLoad(e.target,false)})}}}
+
+/* ---------- withdraw methods ---------- */
+function drawMethods(p){
+ p.innerHTML='<h2>Withdrawal methods</h2><p class="desc">Payment options, minimum/maximum amounts, fees and processing times shown to users before confirming.</p>'
+ +'<button class="btn btn-primary" id="mAdd" style="margin-bottom:14px">'+ic('plus')+' Add method</button>'
+ +'<div id="mList">'+CFG.methods.map(function(m,i){return methodCard(m,i)}).join('')+'</div>';
+ icons();
+ function methodCard(m,i){
+  var feeTxt=m.fee.flat!==undefined?money0(m.fee.flat)+' flat':m.fee.pct+'% (min '+money0(m.fee.min)+')';
+  return '<div class="off-card"><div class="off-head">'
+  +'<span class="off-logo" style="background:'+m.color+'">'+ic(m.icon)+'</span><b>'+m.name+'</b>'
+  +'<button class="btn btn-ghost btn-sm" data-medit="'+i+'">'+ic('pencil')+' Edit</button>'
+  +'<button class="btn btn-ghost btn-sm" data-mdel="'+i+'" style="color:var(--red)">'+ic('trash-2')+'</button></div>'
+  +'<div style="display:flex;gap:7px;flex-wrap:wrap"><span class="chip">Min '+money0(m.min)+'</span>'
+  +'<span class="chip">Max '+money0(m.max)+'</span><span class="chip">Fee '+feeTxt+'</span>'
+  +'<span class="chip">'+m.eta+'</span></div></div>'}
+ var list=$('#mList');
+ list.addEventListener('click',function(e){
+  var ed=e.target.closest('[data-medit]'),del=e.target.closest('[data-mdel]');
+  if(ed)editMethod(+ed.dataset.medit);
+  if(del){
+   if(!confirm('Delete this payment method?'))return;
+   CFG.methods.splice(+del.dataset.mdel,1);
+   list.innerHTML=CFG.methods.map(function(m,i){return methodCard(m,i)}).join('');icons();
+   saveConfig().then(function(){toast('Method deleted','success')}).catch(function(){toast('Save failed','error')})}});
+ function editMethod(i){
+  var m=CFG.methods[i];
+  var mopen=openModal({title:(i<0?'Add method':'Edit method'),body:
+   '<div class="grid2"><div><div class="field"><label>Name</label><input class="input" id="fmN" value="'+(m?m.name:'')+'"></div></div>'
+   +'<div><div class="field"><label>Kind</label><select class="input" id="fmK">'
+   +'<option value="mobile" '+(m&&m.kind==='mobile'?'selected':'')+'>Mobile wallet</option>'
+   +'<option value="bank" '+(m&&m.kind==='bank'?'selected':'')+'>Bank</option></select></div></div></div>'
+   +'<div class="grid2"><div><div class="field"><label>Minimum (৳)</label><input class="input" id="fmMin" type="number" min="1" value="'+(m?m.min:200)+'"></div></div>'
+   +'<div><div class="field"><label>Maximum (৳)</label><input class="input" id="fmMax" type="number" min="1" value="'+(m?m.max:25000)+'"></div></div></div>'
+   +'<div class="grid2"><div><div class="field"><label>Fee type</label><select class="input" id="fmFT">'
+   +'<option value="pct" '+(m&&m.fee.pct!==undefined?'selected':'')+'>Percentage</option>'
+   +'<option value="flat" '+(m&&m.fee.flat!==undefined?'selected':'')+'>Flat</option></select></div></div>'
+   +'<div><div class="field"><label>Fee value</label><input class="input" id="fmFTv" type="number" min="0" step="0.5" value="'+(m?(m.fee.pct!==undefined?m.fee.pct:m.fee.flat):1)+'"></div></div></div>'
+   +'<div class="field" id="fmMinF" style="'+(m&&m.fee.pct!==undefined?'':'display:none')+'"><label>Minimum fee (৳) for percentage</label><input class="input" id="fmFmin" type="number" min="0" value="'+(m?(m.fee.min||0):0)+'"></div>'
+   +'<div class="field"><label>Processing time text</label><input class="input" id="fmEta" value="'+(m?m.eta:'Within 24 hours')+'"></div>'
+   +'<div class="grid2"><div><div class="field"><label>Icon (lucide)</label><input class="input" id="fmIco" value="'+(m?m.icon:'smartphone')+'"></div></div>'
+   +'<div><div class="field"><label>Brand color</label><input class="input" id="fmCol" type="color" value="'+(m?m.color:'#E2136E')+'"></div></div></div>'
+   +'<button class="btn btn-primary btn-block" id="fmSave">Save method</button>'});
+  var ftSel=$('#fmFT',mopen.root);
+  ftSel.onchange=function(){
+   $('#fmMinF',mopen.root).style.display=ftSel.value==='pct'?'':'none'};
+  $('#fmSave',mopen.root).onclick=function(e){
+   btnLoad(e.target,true);
+   var nm=$('#fmN',mopen.root).value.trim()||'Method';
+   var min=round2(parseFloat($('#fmMin',mopen.root).value)||1);
+   var max=round2(parseFloat($('#fmMax',mopen.root).value)||25000);
+   var ftype=$('#fmFT',mopen.root).value,fv=parseFloat($('#fmFTv',mopen.root).value)||0;
+   var fee=ftype==='pct'?{pct:fv,min:round2(parseFloat($('#fmFmin',mopen.root).value)||0)}:{flat:round2(fv)};
+   var nm2={
+    id:m?m.id:nm.toLowerCase().replace(/[^a-z0-9]/g,'')+rid(2).toLowerCase(),
+    name:nm,kind:$('#fmK',mopen.root).value,icon:$('#fmIco',mopen.root).value.trim()||'wallet',
+    color:$('#fmCol',mopen.root).value,min:min,max:Math.max(min,max),fee:fee,
+    eta:$('#fmEta',mopen.root).value.trim()||'Within 24 hours'};
+   if(i<0){CFG.methods.push(nm2)}
+   else{CFG.methods[i]=nm2}
+   saveConfig().then(function(){toast('Method saved','success');draw()}).catch(function(er){
+    toast('Save failed: '+er.message,'error');btnLoad(e.target,false)})}}}
+
+/* ---------- users ---------- */
+function drawUsers(p){
+ p.innerHTML='<h2>Users</h2><p class="desc">Search by name or email. Click Manage to adjust balance, change admin roles or send a notification.</p>'
+ +'<div class="search">'+ic('search')+'<input class="input" id="uSearch" placeholder="Search name or email…"></div>'
+ +'<div class="card" style="padding:2px 0" id="uList"><div style="padding:20px;text-align:center;color:var(--ink3);font-weight:600">Loading users…</div></div>';
+ icons();
+ var allUsers=[];
+ fs.collection('users').limit(200).get().then(function(q){
+  q.forEach(function(d){var u=d.data();u._id=d.id;allUsers.push(u)});
+  allUsers.sort(function(a,b){return (b.joinedAt||0)-(a.joinedAt||0)});
+  drawUserList(allUsers);
+  $('#uSearch').addEventListener('input',function(){
+   var q2=this.value.trim().toLowerCase();
+   drawUserList(allUsers.filter(function(u){
+    return !q2||(u.name||'').toLowerCase().indexOf(q2)>=0||(u.email||'').toLowerCase().indexOf(q2)>=0}))})})
+ .catch(function(e){
+  var box=$('#uList');if(box)box.innerHTML='<div style="padding:20px;text-align:center;color:var(--red);font-weight:600">Failed to load users: '+((e&&e.message)||'error')+'</div>'});
+ function drawUserList(list){
+  var box=$('#uList');if(!box)return;
+  if(!list.length){box.innerHTML='<div style="padding:20px;text-align:center;color:var(--ink3);font-weight:600">No users found.</div>';return}
+  box.innerHTML='<div style="overflow-x:auto"><table class="tbl"><tr><th>User</th><th>Balance</th><th>Earned</th><th>Role</th><th></th></tr>'
+  +list.map(function(u){
+   var role=u.role==='admin'?'<span class="chip chip-amber">admin</span>':'<span class="chip">user</span>';
+   return '<tr data-uid="'+u._id+'"><td><b>'+(u.name||'—')+'</b><br><span style="color:var(--ink3);font-size:11.5px">'+(u.email||'—')+'</span></td>'
+   +'<td style="font-family:var(--num);font-weight:700">'+money((u.balance||{}).available)+'</td>'
+   +'<td style="font-family:var(--num)">'+money((u.balance||{}).earned)+'</td>'
+   +'<td>'+role+'</td>'
+   +'<td><button class="btn btn-ghost btn-sm" data-uopen="'+u._id+'">Manage</button></td></tr>'}).join('')+'</table></div>';
+  icons();
+  $$('[data-uopen]',box).forEach(function(b){b.onclick=function(){
+   var u=null;allUsers.forEach(function(x){if(x._id===b.dataset.uopen)u=x});
+   userModal(u)}})}
+ function userModal(u){
+  var b=u.balance||{available:0,pending:0,earned:0,withdrawn:0};
+  var m=openModal({title:'Manage · '+(u.name||u._id),body:
+   '<div class="grid2" style="margin-bottom:14px">'
+   +'<div class="stat"><small>Available</small><b>'+money(b.available)+'</b></div>'
+   +'<div class="stat"><small>Pending</small><b>'+money(b.pending)+'</b></div>'
+   +'<div class="stat"><small>Earned</small><b>'+money(b.earned)+'</b></div>'
+   +'<div class="stat"><small>Withdrawn</small><b>'+money(b.withdrawn)+'</b></div></div>'
+   +'<h2 style="font-size:14px;margin-bottom:10px">Admin role</h2>'
+   +'<div class="mrow"><span>Current role</span><b style="font-family:var(--font);font-size:12.5px">'+(u.role==='admin'?'admin':'user')+'</b></div>'
+   +'<button class="btn '+(u.role==='admin'?'btn-ghost':'btn-primary')+' btn-block" id="umRole" style="margin-top:10px">'+ic('shield')+' '+(u.role==='admin'?'Remove admin role':'Grant admin role')+'</button>'
+   +'<h2 style="font-size:14px;margin:16px 0 10px">Adjust balance</h2>'
+   +'<div class="grid2"><div><div class="field"><label>Amount (৳)</label><input class="input" id="umAmt" type="number" step="0.01" value="100"></div></div>'
+   +'<div><div class="field"><label>Action</label><select class="input" id="umAct"><option value="add">Add to available</option><option value="sub">Subtract from available</option></select></div></div></div>'
+   +'<div class="field"><label>Reason (shown in user history)</label><input class="input" id="umNote" value="Admin adjustment"></div>'
+   +'<button class="btn btn-primary btn-block" id="umBal">'+ic('wallet')+' Apply balance adjustment</button>'
+   +'<h2 style="font-size:14px;margin:16px 0 10px">Send notification</h2>'
+   +'<div class="field"><label>Title</label><input class="input" id="umNT" value="Announcement"></div>'
+   +'<div class="field"><label>Message</label><input class="input" id="umNB" value=""></div>'
+   +'<button class="btn btn-ghost btn-block" id="umNotif">'+ic('bell')+' Send notification</button>'
+   +'<h2 style="font-size:14px;margin:16px 0 10px">Details</h2>'
+   +'<div class="mrow"><span>User ID</span><b style="font-family:var(--font);font-size:11px;word-break:break-all">'+u._id+'</b></div>'
+   +'<div class="mrow"><span>Referral code</span><b style="font-family:var(--font);font-size:12px">'+(u.refCode||'—')+'</b></div>'
+   +'<div class="mrow"><span>Streak</span><b>'+(u.streak||0)+' days</b></div>'
+   +'<div class="mrow"><span>Joined</span><b style="font-family:var(--font);font-size:12.5px">'+(u.joinedAt?fmtDT(u.joinedAt):'—')+'</b></div>'});
+  $('#umRole',m.root).onclick=function(e){
+   btnLoad(e.target,true);
+   var newRole=u.role==='admin'?'user':'admin';
+   fs.collection('users').doc(u._id).update({role:newRole}).then(function(){
+    u.role=newRole;
+    btnLoad(e.target,false);
+    toast(newRole==='admin'?'Admin role granted':'Admin role removed','success',u.name);
+    m.close();draw()})
+   .catch(function(err){btnLoad(e.target,false);toast(err.message||'Failed','error')})};
+  $('#umBal',m.root).onclick=function(e){
+   btnLoad(e.target,true);
+   var amt=round2(parseFloat($('#umAmt',m.root).value)||0);
+   var act=$('#umAct',m.root).value,note=$('#umNote',m.root).value.trim()||'Admin adjustment';
+   if(amt<=0){btnLoad(e.target,false);return toast('Enter an amount above 0','error')}
+   fs.runTransaction(function(t){
+    var uref=fs.collection('users').doc(u._id);
+    /* 1. READ */
+    return t.get(uref).then(function(snap){
+     var pd=snap.data();
+     pd.balance=pd.balance||{available:0,pending:0,earned:0,withdrawn:0};
+     /* 2. CALCULATE */
+     if(act==='add'){
+      pd.balance.available=round2(pd.balance.available+amt);
+      pd.balance.earned=round2(pd.balance.earned+amt)}
+     else{
+      if(amt>pd.balance.available)throw{message:'User only has '+money(pd.balance.available)+' available'};
+      pd.balance.available=round2(pd.balance.available-amt)}
+     /* 3. WRITES LAST */
+     t.update(uref,{balance:pd.balance});
+     var tid='TXN-'+rid(8);
+     t.set(uref.collection('txns').doc(tid),{id:tid,at:Date.now(),status:'completed',
+      type:act==='add'?'bonus':'refund',
+      title:note,amount:act==='add'?amt:-amt});
+     t.set(uref.collection('notifs').doc(),{at:Date.now(),read:false,kind:act==='add'?'reward':'info',icon:'wallet',
+      title:act==='add'?'Balance added':'Balance adjusted',
+      body:note+' — '+money(amt)+(act==='add'?' added to':' subtracted from')+' your balance.'});
+     return pd.balance})})
+   .then(function(nb){
+    btnLoad(e.target,false);
+    u.balance=nb;
+    toast('Balance '+(act==='add'?'added':'subtracted'),'success',money(amt)+' · '+u.name);
+    m.close();
+    if(TAB==='overview')draw()})
+   .catch(function(err){btnLoad(e.target,false);toast(err.message||'Failed','error')})};
+  $('#umNotif',m.root).onclick=function(e){
+   btnLoad(e.target,true);
+   var nt=$('#umNT',m.root).value.trim(),nb2=$('#umNB',m.root).value.trim();
+   if(!nt){btnLoad(e.target,false);return toast('Enter a title','error')}
+   fs.collection('users').doc(u._id).collection('notifs').add({
+    at:Date.now(),read:false,kind:'info',icon:'megaphone',title:nt,
+    body:nb2||'An announcement from the Earnly team.'}).then(function(){
+    btnLoad(e.target,false);toast('Notification sent','success','To '+u.name)})
+   .catch(function(err){btnLoad(e.target,false);toast(err.message||'Failed','error')})}}}
+
+/* ---------- boot: panel FIRST, config non-blocking ---------- */
+boot();
+var cfgApplied=false;
+fs.collection('config').doc('app').get().then(function(d){
+ if(d.exists){var saved=d.data();
+  if(saved.ref)CFG.ref=saved.ref;
+  if(saved.checkinRewards)CFG.checkinRewards=saved.checkinRewards;
+  if(saved.scratch)CFG.scratch=saved.scratch;
+  if(saved.spin)CFG.spin=saved.spin;
+  if(saved.videos)CFG.videos=saved.videos||[];
+  if(saved.offers&&saved.offers.length)CFG.offers=saved.offers;
+  if(saved.methods)CFG.methods=saved.methods;
+  cfgApplied=true;
+  if(TAB==='overview'||TAB==='ads')draw()}
+}).catch(function(e){
+/* config read denied/slow → defaults already shown; tell the user why */
+toast('Config could not load — using built-in defaults.','info')});
+</script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Create account — Adward</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%230D63F2"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* sync gate: flag exists → app home before paint */
+if(localStorage.getItem('earnly_logged_in')==='1'){location.replace('index.html')}
+</script>
+<style>
+:root{--line:#E6ECE8;--ink:#101A14;--ink2:#57645C;--ink3:#94A29A;--mint:#E9F7EE;--mint3:#C4E8D2;--green:#16A15C;--green-d:#0B7B44;--blue:#0D63F2;--blue-d:#0A52CC;--blue-s:#EBF2FE;--red:#D92D20;--red-s:#FCEBEB;--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif;--brand:'Space Grotesk','Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:#fff;color:var(--ink);font-size:15px;line-height:1.5}
+.wrap{max-width:440px;margin:0 auto;padding:36px 20px calc(36px + env(safe-area-inset-bottom))}
+.brand{display:flex;align-items:center;gap:9px;font:800 17px var(--brand);margin-bottom:24px;color:var(--ink);text-decoration:none}
+/* Mark 37×37, image fills it — same as the app header */
+.brand .mark{width:37px;height:37px;border-radius:11px;background:var(--blue);color:#fff;display:grid;place-items:center;overflow:hidden;flex:none}
+.brand .mark img{width:100%;height:100%;object-fit:cover;display:block}
+h1{font:800 24px var(--num)}.sub{color:var(--ink2);font-size:14px;margin:6px 0 22px}
+.field{margin-bottom:15px}.field>label{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:7px}
+.inwrap{position:relative}
+.input{width:100%;height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 14px;font:600 15px var(--font);background:#fff;color:var(--ink)}
+.input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-s)}
+.input::placeholder{color:#AEBBB2;font-weight:500}.input.has-ico{padding-right:44px}
+.f-ico{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:none;background:none;color:var(--ink3);cursor:pointer;display:grid;place-items:center;border-radius:9px}
+.f-ico svg{width:18px;height:18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14.5px;border:1px solid transparent;border-radius:12px;height:46px;padding:0 20px;cursor:pointer;background:none;color:var(--ink);font-family:var(--font)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-ghost{background:#fff;border-color:var(--line)}.btn-block{width:100%}
+.btn[disabled]{opacity:.55;pointer-events:none}
+.spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(127,127,127,.3);border-top-color:currentColor;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.pw-str{height:4px;border-radius:99px;background:var(--line);margin-top:7px;overflow:hidden}
+.pw-str i{display:block;height:100%;width:0;background:var(--red);transition:.3s;border-radius:99px}
+.chk{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13.5px;color:var(--ink2);font-weight:500}
+.chk input{display:none}
+.chk .box{width:19px;height:19px;border:1.5px solid var(--line);border-radius:6px;flex:none;display:grid;place-items:center;margin-top:1px;background:#fff;color:#fff}
+.chk .box svg{width:12px;height:12px;opacity:0}
+.chk input:checked~.box{background:var(--blue);border-color:var(--blue)}
+.chk input:checked~.box svg{opacity:1}
+.formerr{display:none;background:var(--red-s);color:var(--red);font-size:13px;font-weight:700;border-radius:12px;padding:11px 14px;margin-bottom:15px}
+.formerr.show{display:block}
+.divider{display:flex;align-items:center;gap:12px;color:var(--ink3);font-size:12.5px;font-weight:600;margin:18px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+.mback{position:fixed;inset:0;background:rgba(16,26,20,.48);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.mbox{background:#fff;width:100%;max-width:440px;border-radius:22px;padding:22px 20px;max-height:84vh;overflow:auto}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.mhead h3{font-size:17px;font-weight:800;font-family:var(--num)}
+.ico-btn{width:36px;height:36px;border-radius:10px;border:none;background:none;display:grid;place-items:center;color:var(--ink);cursor:pointer}
+.legal p{font-size:13.5px;color:var(--ink2);margin-bottom:10px}.legal h4{font-size:14px;margin:14px 0 4px}
+/* ===== FIX: remove Android/WebView tap highlight + tap focus ring ONLY ===== */
+*{-webkit-tap-highlight-color:transparent !important}
+a,button,[role="button"],[onclick],input,label,.brand,.f-ico,.ico-btn,.btn,.chk{-webkit-tap-highlight-color:transparent !important}
+a:focus:not(:focus-visible),button:focus:not(:focus-visible),.brand:focus:not(:focus-visible),.f-ico:focus:not(:focus-visible),.ico-btn:focus:not(:focus-visible),.btn:focus:not(:focus-visible),.chk:focus:not(:focus-visible){outline:none !important}
+/* fallback for very old Android WebView without :focus-visible (touch devices only) */
+@media (hover:none) and (pointer:coarse){a:focus,button:focus,.brand:focus,.f-ico:focus,.ico-btn:focus,.btn:focus,.chk:focus{outline:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <a class="brand" href="index.html"><span class="mark"><img id="brandLogo" src="https://i.ibb.co.com/7J62W1Vy/super-resolution-20260902102855933.png" alt="Adward" onerror="this.style.display='none'"></span>Adward</a>
+ <h1>Create account</h1><p class="sub">It takes less than a minute.</p>
+ <div class="formerr" id="err"></div>
+ <form id="f" novalidate>
+  <div class="field"><label>Full name</label>
+   <input class="input" id="n" placeholder="e.g. Ayesha Rahman" autocomplete="name"></div>
+  <div class="field"><label>Email</label>
+   <input class="input" id="c" type="email" placeholder="you@example.com" autocomplete="email"></div>
+  <div class="field"><label>Password</label>
+   <div class="inwrap"><input class="input has-ico" id="p" type="password" placeholder="At least 6 characters" autocomplete="new-password">
+   <button type="button" class="f-ico" id="eye"><i data-lucide="eye"></i></button></div>
+   <div class="pw-str"><i id="bar"></i></div></div>
+  <div class="field"><label>Confirm password</label>
+   <input class="input" id="p2" type="password" placeholder="Repeat your password" autocomplete="new-password"></div>
+  <div class="field"><label>Referral code <span style="font-weight:500;color:var(--ink3)">(optional)</span></label>
+   <input class="input" id="ref" placeholder="e.g. RAFIQ25" style="text-transform:uppercase"></div>
+  <label class="chk" style="margin-bottom:18px"><input type="checkbox" id="t">
+   <span class="box"><i data-lucide="check"></i></span>
+   <span>I agree to the <a href="javascript:void 0" id="tl" style="font-weight:700">Terms &amp; Conditions</a></span></label>
+  <button class="btn btn-primary btn-block" id="go" type="submit">Create account</button>
+ </form>
+ <div class="divider">Already have an account?</div>
+ <a class="btn btn-ghost btn-block" href="login.html">Sign in</a>
+</div>
+<script>
+/* ================= register.html — Firebase, full logic ================= */
+var firebaseConfig={apiKey:"AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",authDomain:"earning-app-6d638.firebaseapp.com",projectId:"earning-app-6d638",storageBucket:"earning-app-6d638.firebasestorage.app",messagingSenderId:"813497830586",appId:"1:813497830586:web:8f728409eaaccd08c34683"};
+firebase.initializeApp(firebaseConfig);
+var auth=firebase.auth(),fs=firebase.firestore(),FV=firebase.firestore.FieldValue;
+var $=function(s){return document.querySelector(s)};
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money0(n){return '৳'+Number(n||0).toLocaleString('en-US')}
+function rid(n){var s='',c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';while(n--)s+=c[Math.random()*31|0];return s}
+function ymd(t){var d=t?new Date(t):new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function btnLoad(b,on){if(on){b.dataset.h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spinner"></span> Please wait…'}
+else if(b.dataset.h){b.innerHTML=b.dataset.h;b.disabled=false;icons()}}
+function openModal(o){var b=document.createElement('div');b.className='mback';
+b.innerHTML='<div class="mbox"><div class="mhead"><h3>'+o.title+'</h3><button class="ico-btn" data-close>'+ic('x')+'</button></div>'+o.body+'</div>';
+document.body.appendChild(b);icons();var c=function(){b.remove()};
+b.addEventListener('click',function(e){if(e.target===b)c()});b.querySelector('[data-close]').onclick=c;return{close:c,root:b}}
+function authMsg(e){var m={'auth/email-already-in-use':'An account with this email already exists.','auth/weak-password':'Password must be at least 6 characters.','auth/invalid-email':'Enter a valid email address.','auth/network-request-failed':'Network error — check your connection.'};
+return m[e&&e.code]||(e&&e.message)||'Something went wrong.'}
+
+/* ================== SITE LOGO (auto-invalidating cache) ==================
+   • Same shared cache as the app pages (earnly_site_logo_v2) — one
+     download serves every page.
+   • The <img> above now has a hardcoded src (remote URL) so the mark
+     is never empty on first visit; cacheLogo() upgrades it to the
+     cached bytes, and onerror falls back to the clean blue mark.
+   • Legacy v1 key (raw base64, old format) is removed on first run.
+========================================================================== */
+var LOGO_URL='https://i.ibb.co.com/7J62W1Vy/super-resolution-20260902102855933.png';
+var LOGO_KEY='earnly_site_logo_v2';
+var LOGO_LEGACY_KEYS=['earnly_watch_ad_logo_v1'];
+function logoGet(){
+try{
+var raw=localStorage.getItem(LOGO_KEY);
+if(!raw)return '';
+var o=JSON.parse(raw);
+/* URL changed since it was cached → stale, drop it */
+if(!o||o.url!==LOGO_URL||!o.data)return '';
+return o.data}catch(e){return ''}}
+function logoSrc(){return logoGet()||LOGO_URL}
+function updateLogoImg(){
+var l=logoGet();if(!l)return;
+var im=$('#brandLogo');
+if(im)im.src=l}
+function cacheLogo(){
+/* wipe old-format caches from previous versions */
+try{LOGO_LEGACY_KEYS.forEach(function(k){localStorage.removeItem(k)})}catch(e){}
+if(logoGet())return; /* this URL is already cached — done */
+var save=function(d){try{localStorage.setItem(LOGO_KEY,JSON.stringify({url:LOGO_URL,data:d}))}catch(e){/* quota */}};
+var viaCanvas=function(img){
+try{
+var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+if(!w||!h)return;
+var scale=Math.min(1,512/Math.max(w,h));
+var c=document.createElement('canvas');
+c.width=Math.max(1,Math.round(w*scale));
+c.height=Math.max(1,Math.round(h*scale));
+var cx=c.getContext('2d');
+cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+cx.drawImage(img,0,0,c.width,c.height);
+save(c.toDataURL('image/png'));
+updateLogoImg()}catch(e){/* tainted canvas — remote URL stays in use */}};
+fetch(LOGO_URL,{mode:'cors'}).then(function(r){
+if(!r.ok)throw new Error('http '+r.status);return r.blob()}).then(function(b){
+return new Promise(function(res,rej){
+var fr=new FileReader();fr.onload=function(){res(fr.result)};fr.onerror=rej;fr.readAsDataURL(b)})}).then(function(dataUrl){
+/* small source → keep the original bytes untouched (best quality);
+   big source → a raw data URL would blow the ~5MB localStorage
+   quota, so downscale once to the crisp 512px copy instead */
+if(dataUrl&&dataUrl.length<1200000){save(dataUrl);updateLogoImg();return}
+var probe=new Image();
+probe.onload=function(){viaCanvas(probe)};
+probe.src=dataUrl}).catch(function(){
+var img=new Image();img.crossOrigin='anonymous';
+img.onload=function(){viaCanvas(img)};
+img.src=LOGO_URL})}
+icons();
+
+/* ===== REFERRAL CAPTURE — ?ref=CODE or ?ref=UID, survives reloads ===== */
+var REF_KEY='earnly_ref_capture';
+var urlRef=(new URLSearchParams(location.search).get('ref')||'').trim();
+if(urlRef){try{localStorage.setItem(REF_KEY,urlRef)}catch(e){}}
+ $('#ref').value=urlRef.toUpperCase();
+if(!urlRef){try{var savedRef=(localStorage.getItem(REF_KEY)||'').trim();if(savedRef)$('#ref').value=savedRef.toUpperCase()}catch(e){}}
+
+/* cache the site logo immediately (runs once, silently) */
+cacheLogo();
+
+/* FIX: registering guard — creating the auth account fires this listener
+   mid-registration; it must NOT redirect away before the profile is written */
+var registering=false;
+auth.onAuthStateChanged(function(u){
+if(u){localStorage.setItem('earnly_logged_in','1');localStorage.setItem('earnly_uid',u.uid);
+if(!registering)location.replace('index.html')}});
+
+ $('#eye').onclick=function(){var i=$('#p'),s=i.type==='password';i.type=s?'text':'password';this.innerHTML=ic(s?'eye-off':'eye');icons()};
+ $('#p').oninput=function(e){var v=e.target.value,
+s=Math.min(100,v.length*12+(/\d/.test(v)?20:0)+(/[^a-zA-Z0-9]/.test(v)?20:0)),b=$('#bar');
+b.style.width=Math.min(100,s)+'%';
+b.style.background=s<50?'var(--red)':s<80?'#EFA83C':'var(--green)'};
+ $('#tl').onclick=function(e){e.preventDefault();openModal({title:'Terms & Conditions',
+body:'<div class="legal"><h4>1. Earning</h4><p>Rewards are only granted after server-side verification of task completion. Attempting to manipulate timers, scripts or multiple accounts may result in balance forfeiture.</p><h4>2. Withdrawals</h4><p>Withdrawal requests are reviewed before processing. Minimum ৳200 and at least 3 valid referrals required.</p><h4>3. Referrals</h4><p>A referral becomes valid — and pays the referrer a one-time ৳50 reward — only when the referred account earns a total of ৳100 from legitimate activities. The referral stays pending until then. One account per person; referral relationships are permanent and cannot be changed after registration.</p></div>'})};
+
+/* ===== UNIQUE REFERRAL CODE — atomic claim, duplicates impossible =====
+   refCodes/{code} doc ID = the code itself. Firestore .create() fails
+   with 'already-exists' when ANY account has claimed it, so two
+   registrations racing on the same code can never both win.
+   Belt & braces: each candidate is also checked against existing
+   users' refCode fields (protects against legacy unclaimed codes).
+   Codes are PREFIX + rid(4) (~900k combos per prefix) — long enough
+   that collisions are rare, and harmless when they happen (retry). */
+async function claimRefCode(uid,name){
+var prefix=(String(name||'').replace(/[^a-zA-Z]/g,'').slice(0,4).toUpperCase())||'USER';
+var code='',i;
+for(i=0;i<12;i++){
+code=prefix+rid(4);
+try{
+var ex=await fs.collection('users').where('refCode','==',code).limit(1).get();
+if(!ex.empty)continue; /* code already owned by a legacy account */
+/* ATOMIC CLAIM — fails if refCodes/{code} already exists */
+await fs.collection('refCodes').doc(code).create({uid:uid,at:Date.now()});
+return code}catch(e){
+/* rules missing for refCodes → skip retries, use unique fallback */
+if(e&&(e.code==='permission-denied'))break}}
+/* fallback: timestamp suffix makes a duplicate practically impossible */
+var fb=prefix+rid(6)+String(Date.now()).slice(-5);
+try{await fs.collection('refCodes').doc(fb).create({uid:uid,at:Date.now(),fallback:true})}catch(e2){}
+return fb}
+
+/* ===== RESOLVE REFERRER — accepts a referral CODE or a raw UID ===== */
+async function resolveReferrer(raw){
+var v=String(raw||'').trim();
+if(!v)return null;
+try{var d1=await fs.collection('users').doc(v).get();if(d1.exists)return d1}catch(e0){}
+var vu=v.toUpperCase();
+if(vu!==v){try{var d2=await fs.collection('users').doc(vu).get();if(d2.exists)return d2}catch(e2){}}
+var q=await fs.collection('users').where('refCode','==',vu).limit(1).get();
+return q.empty?null:q.docs[0]}
+
+ $('#f').onsubmit=async function(e){e.preventDefault();
+var er=$('#err');er.classList.remove('show');
+var bad=function(m){er.textContent=m;er.classList.add('show')};
+var name=$('#n').value.trim(),
+    email=$('#c').value.trim().toLowerCase(),
+    pw=$('#p').value, pw2=$('#p2').value,
+    refc=$('#ref').value.trim().toUpperCase();
+if(name.length<3)return bad('Please enter your full name');
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))return bad('Enter a valid email address');
+if(pw.length<6)return bad('Password must be at least 6 characters');
+if(pw!==pw2)return bad('Passwords do not match');
+if(!$('#t').checked)return bad('Please accept the Terms & Conditions to continue');
+btnLoad($('#go'),true);
+registering=true;
+var cred=null;
+try{
+var dup=await fs.collection('users').where('email','==',email).limit(1).get();
+if(!dup.empty)throw{message:'An account with this email already exists.'};
+/* ---- REFERRAL: resolve the code to a real referrer (or none) ---- */
+var refDoc=null;
+if(refc){
+refDoc=await resolveReferrer(refc);
+if(!refDoc){btnLoad($('#go'),false);registering=false;return bad('That referral code does not exist.')}}
+cred=await auth.createUserWithEmailAndPassword(email,pw);
+await cred.user.updateProfile({displayName:name});
+/* claim a globally-unique referral code (atomic, duplicate-proof) */
+var code=await claimRefCode(cred.user.uid,name);
+var uref=fs.collection('users').doc(cred.user.uid);
+/* ---- PROFILE + REFERRAL ATTACH — one atomic transaction ----
+   The referrer is re-verified INSIDE the transaction (deleted
+   referrer → register normally without referral; self-referral →
+   blocked). Referred fields are set ONCE here and never written
+   again anywhere:
+     referredBy         : referrer UID (permanent)
+     referralStatus     : 'pending' → 'valid' only at ৳100 earned
+     referralRewardPaid : false → true (permanent once-only flag)
+     refJoinedAt/refAt  : referral date
+     refCodeUsed        : the code that was used
+   No reward is granted here — not to the referrer, not to the new
+   user. Nothing becomes valid until ৳100 total earned.             */
+await fs.runTransaction(function(t){
+return (async function(){
+var refSnap=null;
+if(refDoc){
+var rs=await t.get(refDoc.ref);
+if(rs.exists&&rs.id!==cred.user.uid)refSnap=rs}
+var now=Date.now();
+var pid={name:name,email:email,phone:'',contact:email,refCode:code,joinedAt:now,
+referredBy:refSnap?refSnap.id:null,
+referralStatus:refSnap?'pending':null,
+referralRewardPaid:false,
+refUnlocked:true,
+refJoinedAt:refSnap?now:null,
+refAt:refSnap?now:null,
+refCodeUsed:refSnap?refc:null,
+streak:0,lastCheckin:null,
+settings:{push:true,email:true,tips:false},
+balance:{available:0,pending:0,earned:0,withdrawn:0},
+daily:{day:ymd(),videos:{},scratched:0,spins:0,tasksClaimed:[],scratchLog:[],spinLog:[],
+activeCard:null,loginDone:false,todayEarned:0},
+uoff:{},refs:[]};
+t.set(uref,pid);
+if(refSnap){
+/* record on the referrer: doc ID = new user's UID → duplicate
+   referral records for the same person are impossible */
+t.set(refSnap.ref.collection('referrals').doc(cred.user.uid),
+{name:name,at:now,status:'pending',rewardPaid:false,earned:0});
+/* keep the legacy refs array + invited counter in sync (display only) */
+t.update(refSnap.ref,{refs:FV.arrayUnion({uid:cred.user.uid,name:name,at:now,status:'pending'}),refInvited:FV.increment(1)});
+t.set(refSnap.ref.collection('notifs').doc(),
+{at:now,read:false,kind:'referral',icon:'users',title:'New referral joined',
+body:name+' signed up with your code. Your '+money0(50)+' reward unlocks when they reach '+money0(100)+' total earned.'})}
+t.set(uref.collection('notifs').doc(),
+{at:now,read:false,kind:'info',icon:'sparkles',title:'Welcome to Adward',
+body:'Watch ads, scratch cards and complete daily tasks — every reward is verified before it reaches your balance.'});
+return true})()});
+try{await cred.user.sendEmailVerification()}catch(e2){}
+try{localStorage.removeItem(REF_KEY)}catch(e5){}
+location.href='index.html'}
+catch(ex){
+/* profile write failed → remove the half-created account so the
+   user gets a clean retry (no ghost account, no stuck email) */
+if(cred){try{await cred.user.delete()}catch(e3){}
+try{localStorage.removeItem('earnly_logged_in');localStorage.removeItem('earnly_uid')}catch(e4){}}
+registering=false;
+bad(authMsg(ex));btnLoad($('#go'),false)}};
+</script>
+</body>
+</html>

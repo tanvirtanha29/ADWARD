@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Admin Panel — Adward</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%230D63F2"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F6F8F7;--line:#E6ECE8;--line2:#EEF2F0;--ink:#101A14;--ink2:#57645C;--ink3:#94A29A;--mint:#E9F7EE;--mint2:#D9F0E2;--mint3:#C4E8D2;--green:#16A15C;--green-d:#0B7B44;--blue:#0D63F2;--blue-d:#0A52CC;--blue-s:#EBF2FE;--amber:#B25E09;--amber-s:#FDF1DF;--red:#D92D20;--red-s:#FCEBEB;--sh-sm:0 1px 2px rgba(16,24,40,.05);--sh-md:0 8px 24px rgba(16,24,40,.08);--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif;--brand:'Space Grotesk','Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}button{font-family:var(--font)}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14.5px;border:1px solid transparent;border-radius:12px;height:46px;padding:0 20px;cursor:pointer;transition:.18s;background:none;color:var(--ink)}
+.btn svg{width:17px;height:17px}.btn:active{transform:scale(.975)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-ghost{background:#fff;border-color:var(--line)}
+.btn-sm{height:37px;padding:0 15px;font-size:13.5px;border-radius:10px}
+.btn-xs{height:31px;padding:0 11px;font-size:12px;border-radius:9px;gap:5px}
+.btn-danger{background:var(--red-s);border-color:#F3C6C3;color:var(--red)}
+.btn[disabled]{opacity:.55;pointer-events:none}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:rot .7s linear infinite;flex:none}
+@keyframes rot{to{transform:rotate(360deg)}}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#F2F6F3;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.chip-mint{background:var(--mint);color:var(--green-d)}.chip-amber{background:var(--amber-s);color:var(--amber)}.chip-red{background:var(--red-s);color:var(--red)}
+.tint{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}.tint svg{width:19px;height:19px}
+.tint-blue{background:var(--blue-s);color:var(--blue)}.tint-green{background:var(--mint);color:var(--green-d)}.tint-amber{background:var(--amber-s);color:var(--amber)}.tint-red{background:var(--red-s);color:var(--red)}
+.dhdr{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line2);height:60px;display:flex;align-items:center;gap:8px;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font:800 17px var(--brand);text-decoration:none}
+.brand .mark{width:37px;height:37px;border-radius:11px;background:var(--blue);color:#fff;display:grid;place-items:center;overflow:hidden;flex:none}
+.brand .mark img{width:100%;height:100%;object-fit:cover;display:block}
+.main{max-width:760px;margin:0 auto;padding:18px 16px calc(60px + env(safe-area-inset-bottom))}
+.phead{margin-bottom:18px}.ptitle h1{font:800 22px/1.25 var(--num)}.ptitle p{color:var(--ink2);font-size:14px;margin-top:4px}
+.sec{margin-top:22px}.sech{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.sech h2{font-size:16px;font-weight:800}
+.field{margin-bottom:13px}.field>label{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:7px}
+.input{width:100%;height:46px;border:1.5px solid var(--line);border-radius:12px;padding:0 14px;font:600 15px var(--font);background:#fff;color:var(--ink)}
+.input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-s)}
+.grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:640px){.grid4{grid-template-columns:repeat(4,1fr)}}
+.srow{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line2);cursor:pointer;transition:background .14s}
+.srow:last-child{border:none}.srow:hover{background:#FBFDFC}
+.srow .si{flex:1;min-width:0}
+.srow .si b{font-size:14px;font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .si span{font-size:12px;color:var(--ink3);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:13.5px}
+.kv:last-child{border:none}.kv span{color:var(--ink2);font-weight:600}.kv b{font-weight:700;text-align:right;word-break:break-all}
+.bal{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:var(--mint);border:1px solid var(--mint3);border-radius:14px;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.bal b{font:800 22px var(--num);color:var(--green-d)}
+.mrow{display:flex;align-items:center;gap:11px;padding:12px 16px;border-bottom:1px solid var(--line2)}
+.mrow:last-child{border:none}
+.mrow .mi{flex:1;min-width:0}
+.mrow .mi b{font-size:13.5px;font-weight:700;display:block}
+.mrow .mi span{font-size:12px;color:var(--ink3);font-weight:600}
+.macts2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.note{display:flex;gap:11px;padding:13px 15px;background:var(--amber-s);border:1px solid #F3D9AE;border-radius:14px;font-size:13px;color:var(--ink2);font-weight:500;margin-top:16px}
+.note svg{width:17px;height:17px;color:var(--amber);flex:none;margin-top:1px}
+.errbox{display:none;background:var(--red-s);color:var(--red);font-size:13px;font-weight:700;border-radius:12px;padding:11px 14px;margin-top:12px}
+.errbox.show{display:block}
+#toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:min(92vw,390px);pointer-events:none}
+.toast{pointer-events:auto;display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-md);animation:tin .3s;cursor:pointer}
+@keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+.toast .ti{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none}.toast .ti svg{width:15px;height:15px}
+.toast.t-success .ti{background:var(--mint);color:var(--green-d)}.toast.t-error .ti{background:var(--red-s);color:var(--red)}
+.toast.t-info .ti{background:var(--blue-s);color:var(--blue)}
+.toast b{display:block;font-size:13.5px}.toast span{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px}
+/* ===== FIX: remove Android/WebView tap highlight + tap focus ring ONLY ===== */
+*{-webkit-tap-highlight-color:transparent !important}
+a,button,input,label,.btn,.card,.toast,.srow,.mrow{-webkit-tap-highlight-color:transparent !important}
+a:focus:not(:focus-visible),button:focus:not(:focus-visible),.btn:focus:not(:focus-visible),.srow:focus:not(:focus-visible){outline:none !important}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div id="app"></div>
+<script>
+/* ================== ADMIN PANEL — own email+password login ==================
+   • Opens on a login form INSIDE this file (email + password).
+   • Signs in with Firebase Auth email/password — your existing
+     Firestore rules (request.auth != null) work as-is.
+   • Uses a SEPARATE named Firebase app so admin login never signs
+     your normal user-app session out (or the other way around).
+   • No gates, no admin lists, no checks. Login → panel. Lock → login. */
+var REF_BONUS=50;
+var firebaseConfig={apiKey:"AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",authDomain:"earning-app-6d638.firebaseapp.com",projectId:"earning-app-6d638",storageBucket:"earning-app-6d638.firebasestorage.app",messagingSenderId:"813497830586",appId:"1:813497830586:web:8f728409eaaccd08c34683"};
+/* named instance → isolated auth session from the user app */
+var adminApp=firebase.apps.some(function(a){return a.name==='adminApp'})
+?firebase.app('adminApp')
+:firebase.initializeApp(firebaseConfig,'adminApp');
+var auth=adminApp.auth(),fs=adminApp.firestore();
+
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return [].slice.call((r||document).querySelectorAll(s))}
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function money0(n){return '৳'+Number(n||0).toLocaleString('en-US')}
+function round2(v){return Math.round(Number(v||0)*100)/100}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function rid(n){var s='',c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';while(n--)s+=c[Math.random()*31|0];return s}
+function toast(t,type,sub){type=type||'success';var el=document.createElement('div');el.className='toast t-'+type;
+el.innerHTML='<span class="ti">'+ic({success:'circle-check',error:'circle-x',info:'info'}[type])+'</span><div><b>'+esc(t)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div>';
+ $('#toasts').appendChild(el);icons();
+var k=function(){el.classList.add('out');setTimeout(function(){el.remove()},240)};el.onclick=k;setTimeout(k,3600)}
+function btnLoad(b,on){if(on){b.dataset.h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spinner"></span> Please wait…'}
+else if(b.dataset.h){b.innerHTML=b.dataset.h;b.disabled=false}}
+function getTotalEarned(u){if(!u||!u.balance||typeof u.balance.earned!=='number')return 0;return u.balance.earned}
+var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtD(t){var d=new Date(t);return d.getDate()+' '+MONS[d.getMonth()]+' '+d.getFullYear()}
+
+var LOGO_URL='https://i.ibb.co.com/7J62W1Vy/super-resolution-20260902102855933.png';
+function shell(){
+ $('#app').innerHTML='<header class="dhdr"><a class="brand" href="/admin"><span class="mark"><img src="'+LOGO_URL+'" alt="Adward" onerror="this.style.display=\'none\'"></span>Adward</a><div style="flex:1"></div><span class="chip chip-red">ADMIN</span><button class="btn btn-ghost btn-sm" id="lockBtn" style="display:none">'+ic('lock')+' Lock</button></header><main class="main" id="view"></main>';
+ icons();
+ $('#lockBtn').addEventListener('click',function(){auth.signOut().then(gate)})}
+function lock(){
+ $('#lockBtn').style.display='none';
+loginForm()}
+/* ============ LOGIN FORM — email + password, inside this file ============ */
+function loginForm(){
+ $('#view').innerHTML='<div class="phead ptitle"><h1>Admin Panel</h1><p>Sign in with your account email and password.</p></div>'
++'<div class="card" style="max-width:400px;margin:0 auto;padding:28px 22px">'
++'<div class="field"><label>Email</label>'
++'<input class="input" id="aEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>'
++'<div class="field"><label>Password</label>'
++'<input class="input" id="aPass" type="password" placeholder="Your password" autocomplete="current-password"></div>'
++'<button class="btn btn-primary btn-block" id="aGo">'+ic('log-in')+' Sign in to Admin Panel</button>'
++'<div class="errbox" id="aErr"></div></div>';
+icons();
+ var go=function(){
+var em=$('#aEmail').value.trim(),pw=$('#aPass').value,err=$('#aErr');
+err.classList.remove('show');
+if(!em||!pw){err.textContent='Enter your email and password';err.classList.add('show');return}
+btnLoad($('#aGo'),true);
+auth.signInWithEmailAndPassword(em,pw).then(function(cred){
+boot(cred.user)}).catch(function(e){
+btnLoad($('#aGo'),false);
+err.textContent=e&&e.code==='auth/invalid-credential'?'Wrong email or password':(e&&e.message||'Sign in failed');
+err.classList.add('show')})};
+ $('#aGo').addEventListener('click',go);
+ $('#aPass').addEventListener('keydown',function(e){if(e.key==='Enter')go()});
+ $('#aEmail').addEventListener('keydown',function(e){if(e.key==='Enter')$('#aPass').focus()})}
+
+/* ============ PANEL ============ */
+var SEL=null,ORIG=null;
+function boot(user){
+ $('#lockBtn').style.display='inline-flex';
+ $('#view').innerHTML='<div class="phead ptitle"><h1>Admin Panel</h1><p>Search a user to edit balance or manage referrals.</p></div>'
++'<div class="card" style="padding:16px">'
++'<div style="display:flex;gap:9px"><input class="input" id="q" placeholder="Email, UID, referral code or name…" style="flex:1">'
++'<button class="btn btn-primary" id="qGo">'+ic('search')+' Search</button></div>'
++'<p class="chip" style="margin-top:10px">Signed in: '+esc(user.email||user.uid)+'</p></div>'
++'<div id="results"></div><div id="panel"></div>';
+icons();
+ var go=function(){doSearch($('#q').value)};
+ $('#qGo').addEventListener('click',go);
+ $('#q').addEventListener('keydown',function(e){if(e.key==='Enter')go()})}
+
+function doSearch(q){
+q=String(q||'').trim();
+var box=$('#results');
+if(!q){box.innerHTML='';return}
+btnLoad($('#qGo'),true);
+box.innerHTML='<div class="card" style="padding:14px;text-align:center;color:var(--ink2);font-size:13px">Searching…</div>';
+var found={},ids=[];
+var add=function(id,d){if(!found[id]){found[id]=d;ids.push(id)}};
+fs.collection('users').doc(q).get()
+.then(function(s){if(s.exists)add(s.id,s.data());
+return fs.collection('users').where('email','==',q.toLowerCase()).get()})
+.then(function(s1){s1.forEach(function(d){add(d.id,d.data())});
+return fs.collection('users').where('refCode','==',q.toUpperCase()).get()})
+.then(function(s2){s2.forEach(function(d){add(d.id,d.data())});
+return fs.collection('users').orderBy('name').startAt(q).endAt(q+'\uf8ff').limit(10).get()})
+.then(function(s3){s3.forEach(function(d){add(d.id,d.data())});
+renderResults(ids.map(function(id){var d=found[id];d.__id=id;return d}))})
+.catch(function(e){
+box.innerHTML='<div class="card" style="padding:14px"><b style="color:var(--red)">Search failed</b><p style="color:var(--ink2);font-size:13px;margin-top:4px">'+esc(e.message||'')+'</p></div>'})
+.then(function(){btnLoad($('#qGo'),false)})}
+
+function renderResults(list){
+var box=$('#results');
+if(!list.length){box.innerHTML='<div class="card" style="padding:14px;text-align:center;color:var(--ink2);font-size:13px">No users found.</div>';return}
+box.innerHTML='<section class="sec" style="margin-top:14px"><div class="sech"><h2>Results ('+list.length+')</h2></div><div class="card" style="padding:2px 0">'
++list.map(function(d){
+var b=d.balance||{};
+return '<div class="srow" data-u="'+esc(d.__id)+'"><div class="tint tint-blue">'+ic('user')+'</div>'
++'<div class="si"><b>'+esc(d.name||'User')+'</b><span>'+esc(d.email||d.__id)+' · '+money(b.available||0)+'</span></div>'
++ic('chevron-right')+'</div>'}).join('')+'</div></section>';
+icons();
+ $$('#results .srow').forEach(function(r){r.addEventListener('click',function(){selectUser(r.dataset.u)})})}
+
+function selectUser(uid){
+fs.collection('users').doc(uid).get().then(function(s){
+if(!s.exists){toast('User not found','error');return}
+SEL=Object.assign({__id:uid},s.data());
+ORIG=Object.assign({},SEL.balance||{available:0,pending:0,earned:0,withdrawn:0});
+renderPanel();
+loadRefs()}).catch(function(e){toast(e.message||'Could not load user','error')})}
+
+function renderPanel(){
+var d=SEL,b=d.balance||{};
+ $('#panel').innerHTML='<section class="sec"><div class="sech"><h2>User · '+esc(d.name||'User')+'</h2><button class="btn btn-ghost btn-sm" id="backBtn">'+ic('arrow-left')+' Back</button></div>'
++'<div class="card" style="padding:16px">'
++'<div class="kv"><span>UID</span><b style="font:600 11.5px var(--num)">'+esc(d.__id)+'</b></div>'
++'<div class="kv"><span>Email</span><b>'+esc(d.email||'—')+'</b></div>'
++'<div class="kv"><span>Referral code</span><b>'+esc(d.refCode||'—')+'</b></div>'
++'<div class="kv"><span>Joined</span><b>'+(d.joinedAt?fmtD(d.joinedAt):'—')+'</b></div>'
++'<div class="kv"><span>Streak</span><b>'+(d.streak||0)+' days</b></div>'
++'</div></section>'
++'<section class="sec"><div class="sech"><h2>Edit balance</h2></div>'
++'<div class="bal"><span style="font-size:13px;font-weight:700;color:var(--ink2)">Available now</span><b id="curAvail">'+money(b.available||0)+'</b></div>'
++'<div class="card" style="padding:16px"><div class="grid4">'
++'<div class="field"><label>Available</label><input class="input" id="eA" type="number" step="0.01" value="'+(b.available||0)+'"></div>'
++'<div class="field"><label>Pending</label><input class="input" id="eP" type="number" step="0.01" value="'+(b.pending||0)+'"></div>'
++'<div class="field"><label>Total earned</label><input class="input" id="eE" type="number" step="0.01" value="'+(b.earned||0)+'"></div>'
++'<div class="field"><label>Withdrawn</label><input class="input" id="eW" type="number" step="0.01" value="'+(b.withdrawn||0)+'"></div>'
++'</div>'
++'<button class="btn btn-primary btn-block" id="saveBal">'+ic('save')+' Save balance changes</button>'
++'<p style="font-size:11.5px;color:var(--ink3);font-weight:600;margin-top:8px">Saving writes a signed transaction record (amount = available delta) + notification, so the change is auditable in the user\'s history.</p>'
++'</div></section>'
++'<section class="sec"><div class="sech"><h2>Referrals</h2><span class="chip" id="refCount">…</span></div><div id="refList"></div></section>'
++'<div class="note">'+ic('shield')+'<span>"Approve &amp; pay" marks the referral valid, credits ৳50 to this user\'s available balance and logs it (same as the automatic flow). "Mark valid only" prevents any future automatic payout for that referral.</span></div>';
+icons();
+ $('#backBtn').addEventListener('click',function(){SEL=null;$('#panel').innerHTML='';window.scrollTo(0,0)});
+ $('#saveBal').addEventListener('click',saveBalance)}
+
+function saveBalance(){
+var btn=$('#saveBal');
+var nA=round2($('#eA').value),nP=round2($('#eP').value),nE=round2($('#eE').value),nW=round2($('#eW').value);
+var dA=round2(nA-ORIG.available);
+btnLoad(btn,true);
+fs.runTransaction(function(t){
+return t.get(fs.collection('users').doc(SEL.__id)).then(function(snap){
+if(!snap.exists)throw{message:'User disappeared'};
+var p=snap.data();
+p.balance=p.balance||{available:0,pending:0,earned:0,withdrawn:0};
+p.balance.available=round2(nA);p.balance.pending=round2(nP);
+p.balance.earned=round2(nE);p.balance.withdrawn=round2(nW);
+t.update(fs.collection('users').doc(SEL.__id),{balance:p.balance});
+if(dA!==0){
+var tid='TXN-'+rid(8);
+t.set(fs.collection('users').doc(SEL.__id).collection('txns').doc(tid),
+{id:tid,at:Date.now(),status:'completed',type:'bonus',
+title:'Balance adjustment by admin',amount:dA,
+note:'Available: '+money(ORIG.available)+' → '+money(nA)+' · Earned: '+money(ORIG.earned)+' → '+money(nE)});
+t.set(fs.collection('users').doc(SEL.__id).collection('notifs').doc(),
+{at:Date.now(),read:false,kind:'money',icon:'sparkles',
+title:'Balance updated',
+body:'Your balance was adjusted by our team. Available balance is now '+money(nA)+'.'})}
+return dA})})
+.then(function(dA){
+btnLoad(btn,false);
+toast('Balance saved','success',dA!==0?('Adjustment '+money(dA)+' logged in user history'):'No available-balance change');
+ORIG={available:nA,pending:nP,earned:nE,withdrawn:nW};
+SEL.balance={available:nA,pending:nP,earned:nE,withdrawn:nW};
+var ca=$('#curAvail');if(ca)ca.textContent=money(nA);
+loadRefs()})
+.catch(function(e){btnLoad(btn,false);toast(e.message||'Save failed','error')})}
+
+/* ===== REFERRALS of the selected user ===== */
+function loadRefs(){
+if(!SEL)return;
+fs.collection('users').where('referredBy','==',SEL.__id).get()
+.then(function(q){
+var arr=[];q.forEach(function(d){var u=d.data();u.__id=d.id;arr.push(u)});
+arr.sort(function(a,b){return getTotalEarned(b)-getTotalEarned(a)});
+var valid=arr.filter(function(u){return u.referralStatus==='valid'||u.referralRewardPaid===true}).length;
+var rc=$('#refCount');if(rc)rc.textContent=valid+' valid / '+arr.length+' total';
+var box=$('#refList');if(!box)return;
+box.innerHTML=arr.length?'<div class="card" style="padding:2px 0">'+arr.map(function(u){
+var isV=u.referralStatus==='valid'||u.referralRewardPaid===true;
+var paid=u.referralRewardPaid===true;
+return '<div class="mrow"><div class="tint '+(isV?'tint-green':'tint-amber')+'" style="width:34px;height:34px">'+ic('user')+'</div>'
++'<div class="mi"><b>'+esc(u.name||'User')+'</b><span>'+esc(u.email||u.__id)+' · earned '+money(getTotalEarned(u))+'</span></div>'
++'<div class="macts2">'+(isV
+?'<span class="chip chip-mint">'+(paid?'Valid · Paid':'Valid · Unpaid')+'</span>'
+:'<span class="chip chip-amber">'+money0(REF_BONUS)+' pending</span>'
++'<button class="btn btn-primary btn-xs" data-pay="'+esc(u.__id)+'">'+ic('check-check')+' Approve &amp; pay</button>'
++'<button class="btn btn-danger btn-xs" data-mark="'+esc(u.__id)+'">Valid only</button>')
++'</div></div>'}).join('')+'</div>'
+:'<div class="card" style="padding:14px;text-align:center;color:var(--ink2);font-size:13px">This user has no referrals.</div>';
+icons();
+ $$('#refList [data-pay]').forEach(function(b){b.addEventListener('click',function(){adminPayReferral(b.dataset.pay,true,b)})});
+ $$('#refList [data-mark]').forEach(function(b){b.addEventListener('click',function(){adminPayReferral(b.dataset.mark,false,b)})})})
+.catch(function(e){
+var box=$('#refList');if(box)box.innerHTML='<div class="card" style="padding:14px"><b style="color:var(--red)">Could not load referrals</b><p style="color:var(--ink2);font-size:13px;margin-top:4px">'+esc(e.message||'')+'</p></div>'})}
+
+/* Approve & pay ৳50 (deterministic txn id — one-time) or just mark valid. */
+function adminPayReferral(entryUid,pay,btn){
+btnLoad(btn,true);
+var FV=firebase.firestore.FieldValue;
+var bRef=fs.collection('users').doc(entryUid);
+var aRef=fs.collection('users').doc(SEL.__id);
+var tRef=aRef.collection('txns').doc('referral_'+entryUid);
+fs.runTransaction(function(t){
+return Promise.all([t.get(bRef),t.get(aRef),t.get(tRef)]).then(function(rs){
+var bs=rs[0],as=rs[1],ts=rs[2];
+if(!bs.exists)throw{message:'Referred user not found'};
+var b=bs.data();
+var already=b.referralStatus==='valid'||b.referralRewardPaid===true;
+if(already&&ts.exists)throw{message:'Referral is already valid & paid'};
+t.update(bRef,{referralStatus:'valid',referralRewardPaid:true,refValidatedAt:Date.now()});
+var a=as.exists?as.data():{};
+var refs=Array.isArray(a.refs)?a.refs.slice():[];
+var idx=-1,i;for(i=0;i<refs.length;i++){if(refs[i]&&refs[i].uid===entryUid){idx=i;break}}
+var au={refValid:(Number(a.refValid)||0)+1,refEarned:round2((Number(a.refEarned)||0)+REF_BONUS)};
+if(idx>-1){refs[idx]=Object.assign({},refs[idx],{uid:entryUid,status:'done',earned:getTotalEarned(b)});au.refs=refs}
+else{au.refs=FV.arrayUnion({uid:entryUid,name:(b.name||'User').split(' ')[0],at:Date.now(),status:'done',earned:getTotalEarned(b)})}
+if(pay&&!ts.exists){
+t.set(tRef,{id:'referral_'+entryUid,at:Date.now(),status:'completed',type:'referral',
+title:'Referral bonus · '+((b.name||'User').split(' ')[0]),amount:REF_BONUS,fromUid:entryUid});
+au['balance.available']=round2((a.balance&&typeof a.balance.available==='number'?a.balance.available:0)+REF_BONUS)}
+t.update(aRef,au);
+return{pay:pay&&!ts.exists}})})
+.then(function(r){
+btnLoad(btn,false);
+toast(pay&&r.pay?('Referral approved · '+money0(REF_BONUS)+' paid'):'Referral marked valid','success',
+(pay&&r.pay)?'Credited to '+(SEL.name||'user')+'\'s available balance':'No payment was made');
+loadRefs()})
+.catch(function(e){btnLoad(btn,false);toast(e.message||'Action failed','error')})}
+
+/* start */
+shell();
+loginForm();
+</script>
+</body>
+</html>

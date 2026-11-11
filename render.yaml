@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: mht-earning
+    runtime: node
+    plan: free
+    buildCommand: echo "no build needed"
+    startCommand: node server.js
+    envVars:
+      - key: ADMIN_PASSWORD
+        value: "211706451"
+      - key: SESSION_SECRET
+        generateValue: true

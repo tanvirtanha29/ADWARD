@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Admin · Withdrawals — Adward</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="%230D63F2"/><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" fill="white"/></svg>'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#F6F8F7;--line:#E6ECE8;--line2:#EEF2F0;--ink:#101A14;--ink2:#57645C;--ink3:#94A29A;--mint:#E9F7EE;--mint2:#D9F0E2;--mint3:#C4E8D2;--green:#16A15C;--green-d:#0B7B44;--blue:#0D63F2;--blue-d:#0A52CC;--blue-s:#EBF2FE;--amber:#B25E09;--amber-s:#FDF1DF;--red:#D92D20;--red-s:#FCEBEB;--sh-sm:0 1px 2px rgba(16,24,40,.05);--sh-md:0 8px 24px rgba(16,24,40,.08);--font:'Plus Jakarta Sans',sans-serif;--num:'Sora',sans-serif;--brand:'Space Grotesk','Sora',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}button{font-family:var(--font)}
+.grow{flex:1}.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:700;font-size:13.5px;border:1px solid transparent;border-radius:11px;height:40px;padding:0 15px;cursor:pointer;transition:.18s;background:none;color:var(--ink);white-space:nowrap}
+.btn svg{width:15px;height:15px}.btn:active{transform:scale(.975)}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green-d)}
+.btn-red{background:var(--red-s);color:var(--red);border-color:#F3C6C3}.btn-red:hover{background:#F9DEDC}
+.btn-ghost{background:#fff;border-color:var(--line)}
+.btn-sm{height:34px;padding:0 12px;font-size:12.5px;border-radius:10px}
+.btn[disabled]{opacity:.55;pointer-events:none}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:rot .7s linear infinite;flex:none}
+.btn-red .spinner,.btn-ghost .spinner{border-color:rgba(127,127,127,.3);border-top-color:currentColor}
+@keyframes rot{to{transform:rotate(360deg)}}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#F2F6F3;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.chip svg{width:12px;height:12px}.chip-mint{background:var(--mint);color:var(--green-d)}.chip-amber{background:var(--amber-s);color:var(--amber)}.chip-red{background:var(--red-s);color:var(--red)}
+.tint{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}.tint svg{width:19px;height:19px}
+.tint-blue{background:var(--blue-s);color:var(--blue)}.tint-green{background:var(--mint);color:var(--green-d)}.tint-amber{background:var(--amber-s);color:var(--amber)}.tint-red{background:var(--red-s);color:var(--red)}
+.dhdr{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line2);height:60px;display:flex;align-items:center;gap:9px;padding:0 18px}
+.brand{display:flex;align-items:center;gap:9px;color:var(--ink);font:800 17px var(--brand)}
+.brand .mark{width:37px;height:37px;border-radius:11px;background:var(--blue);color:#fff;display:grid;place-items:center;overflow:hidden;flex:none}
+.brand .mark img{width:100%;height:100%;object-fit:cover;display:block}
+.livedot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.testban{position:sticky;top:60px;z-index:39;background:var(--red-s);color:var(--red);font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;padding:7px 14px;text-align:center}
+.testban svg{width:14px;height:14px}
+.main{max-width:1120px;margin:0 auto;padding:20px 18px 60px}
+.phead{margin-bottom:18px}.phead h1{font:800 22px/1.25 var(--num)}.phead p{color:var(--ink2);font-size:13.5px;margin-top:4px}
+.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
+@media(min-width:760px){.statgrid{grid-template-columns:repeat(4,1fr)}}
+.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 15px}
+.stat .tint{width:34px;height:34px;border-radius:10px;margin-bottom:9px}.stat .tint svg{width:16px;height:16px}
+.stat small{font-size:11.5px;font-weight:700;color:var(--ink2);display:block}
+.stat b{font:700 20px var(--num);font-variant-numeric:tabular-nums}
+.stat .sub{font-size:11.5px;color:var(--ink3);font-weight:600;margin-top:2px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.fchips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.fchips::-webkit-scrollbar{display:none}
+.fchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.fchip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.search{position:relative;flex:1;min-width:210px;max-width:340px}
+.search input{width:100%;height:40px;border:1.5px solid var(--line);border-radius:11px;padding:0 12px 0 38px;font:600 13.5px var(--font);background:#fff;color:var(--ink)}
+.search input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-s)}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink3)}
+.rrow{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:860px){.rrow{grid-template-columns:2fr 1.7fr 1fr 1.4fr auto;align-items:center}}
+.rcell{min-width:0}
+.rcell .lab{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:3px}
+.uinfo{display:flex;gap:10px;align-items:center;min-width:0}
+.uavatar{border-radius:50%;background:var(--mint);border:1px solid var(--mint3);color:var(--green-d);display:grid;place-items:center;font:800 12px var(--num);flex:none}
+.uinfo b{font-size:13.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uinfo span{font-size:11.5px;color:var(--ink3);font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbadge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:#fff;border-radius:8px;padding:3px 9px;margin-bottom:5px}
+.accline{display:flex;align-items:center;gap:7px;font:700 13px var(--num);font-variant-numeric:tabular-nums}
+.copyb{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;color:var(--ink2);flex:none}
+.copyb svg{width:13px;height:13px}.copyb:hover{color:var(--blue);border-color:var(--blue)}
+.amt{font:700 17px var(--num);font-variant-numeric:tabular-nums}
+.amt .net{display:block;font-size:11.5px;color:var(--green-d);font-weight:700;margin-top:2px}
+.dt{font-size:12px;color:var(--ink2);font-weight:600}
+.dt .tid{display:block;font-size:11px;color:var(--ink3);font-family:var(--num)}
+.st{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px}
+.st-pending{background:var(--amber-s);color:var(--amber)}
+.st-completed{background:var(--mint);color:var(--green-d)}
+.st-canceled{background:var(--red-s);color:var(--red)}
+.acts{display:flex;gap:7px;flex-wrap:wrap}
+.legend{font-size:11.5px;color:var(--ink3);font-weight:600;margin:14px 2px 0}
+.empty{padding:40px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.eico{width:58px;height:58px;border-radius:50%;background:var(--mint);color:var(--green-d);display:grid;place-items:center;margin-bottom:6px}.eico svg{width:25px;height:25px}
+.empty h3{font-size:16px;font-weight:800}.empty p{color:var(--ink2);font-size:13.5px;max-width:340px}
+.sk{background:#E7EEE9;border-radius:10px;position:relative;overflow:hidden}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:shim 1.4s infinite}
+@keyframes shim{to{transform:translateX(100%)}}
+#toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;width:min(92vw,390px);pointer-events:none}
+.toast{pointer-events:auto;display:flex;gap:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--sh-md);animation:tin .3s;cursor:pointer}
+@keyframes tin{from{opacity:0;transform:translateY(-14px) scale(.96)}}
+.toast .ti{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none}.toast .ti svg{width:15px;height:15px}
+.toast.t-success .ti{background:var(--mint);color:var(--green-d)}.toast.t-error .ti{background:var(--red-s);color:var(--red)}
+.toast.t-info .ti{background:var(--blue-s);color:var(--blue)}.toast.t-warn .ti{background:var(--amber-s);color:var(--amber)}
+.toast b{display:block;font-size:13.5px}.toast span{display:block;font-size:12.5px;color:var(--ink2);margin-top:1px}
+.mback{position:fixed;inset:0;background:rgba(16,26,20,.48);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.mbox{background:#fff;width:100%;max-width:440px;border-radius:20px;padding:22px 20px;animation:mup .25s}
+@keyframes mup{from{transform:translateY(30px);opacity:0}}
+.mhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.mhead h3{font-size:16.5px;font-weight:800;font-family:var(--num)}
+.macts{display:flex;gap:10px;margin-top:16px}.macts .btn{flex:1}
+.errbox{display:none;background:var(--red-s);color:var(--red);border-radius:12px;padding:12px 14px;font-size:12.5px;font-weight:600;margin-bottom:14px;word-break:break-word}
+.errbox.show{display:block}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div id="root"></div>
+<script>
+/* ================= ADMIN PANEL — TEST MODE =================
+   ⚠️ SECURITY REMOVED FOR TESTING:
+   • No login required — page loads straight into the panel
+   • No admin UID gate — anyone who opens admin.html has full control
+   Works because your Firestore rules are currently public read/write.
+   RESTORE THE AUTH GATE BEFORE GOING LIVE (see my previous message).
+============================================================= */
+var firebaseConfig={apiKey:"AIzaSyDyntEXdOxJKaiqzU0p6gr8MNzAUqJ1dqE",authDomain:"earning-app-6d638.firebaseapp.com",projectId:"earning-app-6d638",storageBucket:"earning-app-6d638.firebasestorage.app",messagingSenderId:"813497830586",appId:"1:813497830586:web:8f728409eaaccd08c34683"};
+firebase.initializeApp(firebaseConfig);
+var fs=firebase.firestore();
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return [].slice.call((r||document).querySelectorAll(s))}
+function icons(){if(window.lucide)lucide.createIcons()}
+function ic(n){return '<i data-lucide="'+n+'"></i>'}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function round2(v){return Math.round(v*100)/100}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function initials(n){return (n||'').trim().split(/\s+/).map(function(w){return w[0]}).slice(0,2).join('').toUpperCase()||'?'}
+var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDT(t){var d=new Date(t),h=d.getHours(),a=h>=12?'PM':'AM';h=h%12||12;return d.getDate()+' '+MONS[d.getMonth()]+', '+h+':'+String(d.getMinutes()).padStart(2,'0')+' '+a}
+function toast(t,type,sub){type=type||'success';var el=document.createElement('div');el.className='toast t-'+type;
+el.innerHTML='<span class="ti">'+ic({success:'circle-check',error:'circle-x',info:'info',warn:'triangle-alert'}[type])+'</span><div><b>'+esc(t)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div>';
+ $('#toasts').appendChild(el);icons();
+var k=function(){el.classList.add('out');setTimeout(function(){el.remove()},240)};el.onclick=k;setTimeout(k,4200)}
+function copyText(txt,msg){
+var done=function(){toast(msg||'Copied')};
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(fb)}else fb();
+function fb(){var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
+try{document.execCommand('copy');done()}catch(e){toast('Could not copy','error')}ta.remove()}}
+var LOGO_URL='https://i.ibb.co.com/7J62W1Vy/super-resolution-20260902102855933.png';
+var LOGO_KEY='earnly_site_logo_v2';
+function logoGet(){try{var raw=localStorage.getItem(LOGO_KEY);if(!raw)return '';var o=JSON.parse(raw);return(o&&o.url===LOGO_URL&&o.data)?o.data:''}catch(e){return ''}}
+function logoSrc(){return logoGet()||LOGO_URL}
+var METHOD_COLORS={'bKash':'#E2136E','Nagad':'#E8590C','Rocket':'#883BC4'};
+var root=$('#root');
+/* ============ STATE ============ */
+var requests=[],users={},userFetching={};
+var filter='pending',q='';
+function normDoc(d){
+var w=d.data()||{},uid=(d.ref.parent&&d.ref.parent.parent)?d.ref.parent.parent.id:'?';
+var amt=round2(Math.abs(Number(w.amount)||0));
+var fee=(typeof w.fee==='number')?w.fee:null;
+var net=(typeof w.net==='number')?w.net:(fee!=null?round2(amt-fee):null);
+return{uid:uid,id:w.id||d.id,at:w.at||0,status:String(w.status||'pending'),
+amount:amt,fee:fee,net:net,method:w.method||null,account:w.account||null,note:w.note||'',refundPaid:w.refundPaid===true}}
+function fetchUsers(uids){
+var need=uids.filter(function(u){return u&&!users[u]&&!userFetching[u]});
+if(!need.length)return;
+need.forEach(function(u){userFetching[u]=1});
+Promise.all(need.map(function(u){
+return fs.collection('users').doc(u).get().then(function(s){users[u]=s.exists?s.data():{name:'Unknown user',email:'—'}})
+.catch(function(){users[u]={name:'Unknown user',email:'—'}})}))
+.then(function(){render()})}
+/* ============ DATA (live) ============ */
+function watchRequests(){
+fs.collectionGroup('txns').where('type','==','withdraw').orderBy('at','desc').limit(300)
+.onSnapshot(function(q){
+requests=[];q.forEach(function(d){requests.push(normDoc(d))});
+var seen={},uids=[];
+requests.forEach(function(r){if(!seen[r.uid]){seen[r.uid]=1;uids.push(r.uid)}});
+fetchUsers(uids);
+render()},function(err){
+console.warn(err);
+ $('#err').classList.add('show');
+ $('#err').innerHTML='<b>Query needs a Firestore index.</b><br>Firestore → Indexes → Composite → Add:<br>• Collection ID: <b>txns</b> · ✓ <b>Collection group</b><br>• type ASC · at DESC<br>'+(err&&err.message?esc(err.message):'')})}
+/* ============ ACTIONS ============ */
+function confirmDlg(o){return new Promise(function(res){
+var b=document.createElement('div');b.className='mback';
+b.innerHTML='<div class="mbox"><div class="mhead"><h3>'+o.title+'</h3><button class="ico-btn" style="width:36px;height:36px;border:none;background:none;cursor:pointer" data-close>'+ic('x')+'</button></div>'
++'<p style="color:var(--ink2);font-size:13.5px">'+o.message+'</p>'
++'<div class="macts"><button class="btn btn-ghost" data-no>Cancel</button><button class="btn '+(o.danger?'btn-red':'btn-green')+'" data-yes>'+(o.confirmText||'Confirm')+'</button></div></div>';
+document.body.appendChild(b);icons();var c=function(){b.remove()};
+b.addEventListener('click',function(ev){if(ev.target===b)c()});
+b.querySelector('[data-close]').onclick=c;
+b.querySelector('[data-no]').onclick=function(){res(false);c()};
+b.querySelector('[data-yes]').onclick=function(){res(true);c()}})}
+function approveReq(r,btn){
+btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Saving…';
+var wRef=fs.collection('users').doc(r.uid).collection('txns').doc(r.id);
+fs.runTransaction(function(tr){
+return tr.get(wRef).then(function(ws){
+if(!ws.exists)throw{message:'Request not found'};
+var w=ws.data();
+if(String(w.status)!=='pending')throw{message:'Already processed ('+w.status+')'};
+tr.update(wRef,{status:'completed',completedAt:Date.now(),processedBy:'admin-test'});
+tr.set(wRef.parent.parent.collection('notifs').doc(),{at:Date.now(),read:false,kind:'money',icon:'banknote',
+title:'Withdrawal approved',body:'Your '+money(r.amount)+' withdrawal ('+r.id+') has been marked as paid. '+money(r.net!=null?r.net:r.amount)+' was sent to your account.'})})})
+.then(function(){toast('Marked as paid','success',money(r.amount)+' · '+r.id)})
+.catch(function(e){btn.disabled=false;btn.innerHTML=ic('check')+' Mark paid';icons();toast(e.message||'Failed','error')})}
+function cancelReq(r,btn){
+btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Refunding…';
+var wRef=fs.collection('users').doc(r.uid).collection('txns').doc(r.id);
+var uRef=fs.collection('users').doc(r.uid);
+var rRef=fs.collection('users').doc(r.uid).collection('txns').doc('refund_'+r.id);
+fs.runTransaction(function(tr){
+return tr.get(wRef).then(function(ws){
+if(!ws.exists)throw{message:'Request not found'};
+var w=ws.data();
+if(String(w.status)!=='pending')throw{message:'Already processed ('+w.status+')'};
+var amt=round2(Math.abs(Number(w.amount)||0));
+if(!(amt>0))throw{message:'Invalid amount'};
+return tr.get(uRef).then(function(us){
+var p=(us.exists&&us.data())||{};
+if(!p.balance)p.balance={available:0,pending:0,earned:0,withdrawn:0};
+p.balance.available=round2((Number(p.balance.available)||0)+amt);
+p.balance.withdrawn=Math.max(0,round2((Number(p.balance.withdrawn)||0)-amt));
+/* refundPaid:true written ATOMICALLY with the cancel — the user's
+   history page sees the flag and can never double-refund */
+tr.update(wRef,{status:'canceled',canceledAt:Date.now(),refundPaid:true,processedBy:'admin-test'});
+tr.set(rRef,{id:'refund_'+r.id,at:Date.now(),status:'completed',type:'refund',
+title:'Refund · Withdrawal canceled',amount:amt,
+note:'Withdrawal '+r.id+' was canceled — '+money(amt)+' returned to balance'});
+tr.update(uRef,{balance:p.balance});
+tr.set(uRef.collection('notifs').doc(),{at:Date.now(),read:false,kind:'money',icon:'refresh-cw',
+title:'Withdrawal canceled',body:'Your '+money(amt)+' withdrawal ('+r.id+') was canceled. '+money(amt)+' has been returned to your balance.'})})})})
+.then(function(){toast('Canceled & refunded','success',money(r.amount)+' returned to '+esc(users[r.uid]?(users[r.uid].name||'user'):'user'))})
+.catch(function(e){btn.disabled=false;btn.innerHTML=ic('x')+' Cancel & refund';icons();toast(e.message||'Failed','error')})}
+/* ============ RENDER ============ */
+function statCards(){
+var pend=0,pendAmt=0,paid=0,paidAmt=0,canc=0;
+requests.forEach(function(r){
+if(r.status==='pending'){pend++;pendAmt=round2(pendAmt+r.amount)}
+else if(r.status==='completed'){paid++;paidAmt=round2(paidAmt+r.amount)}
+else if(r.status==='canceled'||r.status==='cancelled'||r.status==='rejected')canc++});
+return '<div class="statgrid">'
++'<div class="stat"><span class="tint tint-amber">'+ic('clock')+'</span><small>Pending requests</small><b>'+pend+'</b><div class="sub">'+money(pendAmt)+' to send</div></div>'
++'<div class="stat"><span class="tint tint-green">'+ic('circle-check')+'</span><small>Completed</small><b>'+paid+'</b><div class="sub">'+money(paidAmt)+' paid out</div></div>'
++'<div class="stat"><span class="tint tint-red">'+ic('circle-x')+'</span><small>Canceled</small><b>'+canc+'</b><div class="sub">refunded to users</div></div>'
++'<div class="stat"><span class="tint tint-blue">'+ic('inbox')+'</span><small>Loaded (max 300)</small><b>'+requests.length+'</b><div class="sub">live via onSnapshot</div></div>'
++'</div>'}
+function rowHtml(r){
+var u=users[r.uid]||{};
+var name=u.name||'Loading…',email=u.email||'';
+var mc=r.method?METHOD_COLORS[r.method]||'#33415C':null;
+var acct=r.account
+?'<div class="accline"><span>'+esc(r.account)+'</span><button class="copyb" data-copy="'+esc(r.account)+'" title="Copy account">'+ic('copy')+'</button></div>'
+:(r.note?'<div style="font-size:12px;color:var(--ink3);font-weight:600">'+esc(r.note)+' <span class="chip" style="margin-left:4px">legacy — limited info</span></div>':'<span style="color:var(--ink3);font-size:12px">—</span>');
+var methodHtml=r.method
+?'<span class="mbadge" style="background:'+mc+'">'+esc(r.method)+'</span>'
+:'<span class="mbadge" style="background:#94A29A">Unknown</span>';
+var stCls=r.status==='pending'?'st-pending':r.status==='completed'?'st-completed':'st-canceled';
+var stTxt=r.status==='pending'?'Pending':r.status==='completed'?'Completed':'Canceled';
+var actions=r.status==='pending'
+?'<button class="btn btn-green btn-sm" data-act="ok" data-id="'+esc(r.id)+'" data-uid="'+esc(r.uid)+'">'+ic('check')+' Mark paid</button>'
++'<button class="btn btn-red btn-sm" data-act="no" data-id="'+esc(r.id)+'" data-uid="'+esc(r.uid)+'">'+ic('x')+' Cancel &amp; refund</button>'
+:'<span style="font-size:11.5px;color:var(--ink3);font-weight:600">No actions</span>';
+return '<div class="rrow">'
++'<div class="rcell"><span class="lab">User</span><div class="uinfo">'
++'<span class="uavatar" style="width:38px;height:38px">'+esc(initials(name))+'</span>'
++'<div style="min-width:0"><b>'+esc(name)+'</b><span>'+esc(email||'—')+'</span>'
++'<span style="font-size:10.5px;color:var(--ink3)">'+esc(r.uid.slice(0,10))+'…</span></div></div></div>'
++'<div class="rcell"><span class="lab">Method &amp; account</span>'+methodHtml+acct+'</div>'
++'<div class="rcell"><span class="lab">Amount</span><span class="amt">'+money(r.amount)
++(r.net!=null&&r.fee!=null?'<span class="net">− '+money(r.fee)+' fee → '+money(r.net)+'</span>':'')+'</span></div>'
++'<div class="rcell"><span class="lab">Requested</span><div class="dt">'+fmtDT(r.at)
++'<span class="tid">'+esc(r.id)+' <button class="copyb" style="display:inline-flex;vertical-align:middle" data-copy="'+esc(r.id)+'">'+ic('copy')+'</button></span></div></div>'
++'<div class="rcell"><span class="lab">Status &amp; actions</span>'
++'<div style="display:flex;flex-direction:column;gap:9px;align-items:flex-start"><span class="st '+stCls+'">'+stTxt+'</span><div class="acts">'+actions+'</div></div></div>'
++'</div>'}
+function filtered(){
+var list=requests;
+if(filter==='pending')list=list.filter(function(r){return r.status==='pending'});
+else if(filter==='completed')list=list.filter(function(r){return r.status==='completed'});
+else if(filter==='canceled')list=list.filter(function(r){return r.status!=='pending'&&r.status!=='completed'});
+if(q){var s=q.toLowerCase();
+list=list.filter(function(r){
+var u=users[r.uid]||{};
+return (r.id+' '+(u.name||'')+' '+(u.email||'')+' '+(r.account||'')+' '+(r.method||'')+' '+r.amount).toLowerCase().indexOf(s)>=0})}
+return list}
+function render(){
+var box=$('#list');
+if(!box)return;
+var list=filtered();
+box.innerHTML=list.length?list.map(rowHtml).join('')
+:'<div class="empty card"><div class="eico">'+ic('inbox')+'</div><h3>'+(q?'No matches':'Nothing here')+'</h3><p>'+(q?'Try a different search.':'No '+(filter!=='all'?filter+' ':'')+'withdrawal requests found yet. New requests appear here automatically.')+'</p></div>';
+icons();
+ $$('[data-copy]',box).forEach(function(b){b.onclick=function(){copyText(b.getAttribute('data-copy'),'Copied')}});
+ $$('[data-act]',box).forEach(function(b){
+var r=null;requests.forEach(function(x){if(x.id===b.getAttribute('data-id')&&x.uid===b.getAttribute('data-uid'))r=x});
+if(!r)return;
+b.onclick=function(){
+if(b.getAttribute('data-act')==='ok'){
+confirmDlg({title:'Mark as paid?',confirmText:'Yes — mark paid',
+message:'Confirm you have SENT '+money(r.net!=null?r.net:r.amount)+' to the user\'s account, then mark this request completed. This cannot be undone.'})
+.then(function(ok){if(ok)approveReq(r,b)})}
+else{
+confirmDlg({title:'Cancel & refund?',confirmText:'Yes — cancel & refund',danger:true,
+message:'The full '+money(r.amount)+' will be returned to '+esc((users[r.uid]||{}).name||'the user')+'\'s available balance immediately (flag-protected, one time only). The user gets a notification.'})
+.then(function(ok){if(ok)cancelReq(r,b)})}}})}
+function renderShell(){
+root.innerHTML='<header class="dhdr"><span class="brand"><span class="mark"><img src="'+logoSrc()+'" alt="Adward"></span>Adward <span style="color:var(--blue)">Admin</span></span>'
++'<div class="grow"></div><span class="chip chip-mint"><span class="livedot"></span> Live</span></header>'
++'<div class="testban">'+ic('triangle-alert')+' TEST MODE — no login &amp; no admin check. Anyone with this URL can approve/refund money. Restore the auth gate before going live!</div>'
++'<main class="main">'
++'<div class="phead"><h1>Withdrawal Requests</h1><p>Review, mark as paid, or cancel with automatic one-time refunds.</p></div>'
++'<div id="err" class="errbox"></div>'
++'<div id="stats"></div>'
++'<div class="toolbar"><div class="fchips" id="fc">'
++[['pending','Pending'],['completed','Completed'],['canceled','Canceled'],['all','All']].map(function(f){
+return '<button class="fchip '+(f[0]===filter?'on':'')+'" data-f="'+f[0]+'">'+f[1]+'</button>'}).join('')
++'</div><div class="search">'+ic('search')+'<input id="sq" placeholder="Search name, email, account, txn ID…"></div></div>'
++'<div id="list"></div>'
++'<p class="legend">Cancel refunds the full debited amount instantly (refundPaid flag prevents double refunds, matching the user\'s history page). Mark paid only after actually sending the money.</p>'
++'</main>';
+icons();
+ $('#stats').innerHTML=statCards();
+render();
+ $$('.fchip').forEach(function(b){b.onclick=function(){filter=b.getAttribute('data-f');
+ $$('.fchip').forEach(function(x){x.classList.toggle('on',x===b)});render()}});
+ $('#sq').addEventListener('input',function(){q=this.value.trim();render()})}
+/* ============ START — no auth gate, loads immediately ============ */
+renderShell();
+watchRequests();
+</script>
+</body>
+</html>
